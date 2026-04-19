@@ -26,8 +26,8 @@
             <h1 class="text-3xl font-extrabold mb-2 tracking-tight">LCC <span class="text-blue-500">DIGITAL</span></h1>
             <p class="text-slate-400 mb-8 text-sm">Silakan masuk untuk mengelola skor</p>
             
-            <input type="text" id="user" value="admin" disabled class="w-full bg-slate-800/50 border border-slate-700 p-4 rounded-t-2xl focus:outline-none text-center font-bold text-slate-500 cursor-not-allowed">
-            <input type="password" id="pass" placeholder="Password Panitia" class="w-full bg-slate-800 border border-slate-700 border-t-0 p-4 rounded-b-2xl mb-6 focus:ring-2 focus:ring-blue-500 outline-none text-center font-bold">
+            <input type="text" id="user" placeholder="Username" class="w-full bg-slate-800/50 border border-slate-700 p-4 rounded-t-2xl focus:outline-none text-center font-bold text-white focus:ring-2 focus:ring-blue-500 transition">
+            <input type="password" id="pass" placeholder="Password" class="w-full bg-slate-800 border border-slate-700 border-t-0 p-4 rounded-b-2xl mb-6 focus:ring-2 focus:ring-blue-500 outline-none text-center font-bold">
             
             <button id="btn-login" onclick="app.login()" class="w-full btn-grad py-4 rounded-2xl font-bold tracking-wide uppercase text-sm mb-3">Masuk Sistem</button>
             <button onclick="app.role='VIEWER'; app.showDashboard()" class="w-full text-slate-500 text-xs font-bold hover:text-slate-300 transition">MASUK SEBAGAI VIEWER (DISPLAY)</button>
@@ -62,16 +62,26 @@
                     <span id="sc-babak" class="text-[10px] text-blue-400 font-bold uppercase tracking-widest">Babak</span>
                 </div>
             </div>
-            <div id="timer-display" class="bg-black/40 px-8 py-2 rounded-2xl border border-white/10 flex items-center gap-4">
-                <span id="time" class="text-3xl font-mono font-black text-yellow-400">00</span>
-                <div id="timer-controls" class="flex gap-2">
-                    <button onclick="app.startTimer(10)" class="bg-blue-600 hover:bg-blue-500 w-8 h-8 rounded-lg text-xs font-bold">10s</button>
-                    <button onclick="app.startTimer(5)" class="bg-slate-700 hover:bg-slate-600 w-8 h-8 rounded-lg text-xs font-bold">5s</button>
+            
+            <div id="timer-display" class="bg-black/40 px-6 py-2 rounded-2xl border border-white/10 flex items-center gap-4">
+                <span id="time" class="text-4xl font-mono font-black text-red-500 tracking-tighter w-12 text-center">00</span>
+                <div id="timer-controls" class="flex flex-col gap-1">
+                    <div class="flex gap-1">
+                        <button onclick="app.setTimer(15)" class="bg-slate-700 hover:bg-slate-600 px-2 py-1 rounded-md text-[10px] font-bold">15s</button>
+                        <button onclick="app.setTimer(30)" class="bg-slate-700 hover:bg-slate-600 px-2 py-1 rounded-md text-[10px] font-bold">30s</button>
+                        <input type="number" id="custom-time" placeholder="Sec" class="w-12 bg-slate-800 text-center text-[10px] rounded-md border border-slate-600 outline-none text-white">
+                        <button onclick="app.setTimer(document.getElementById('custom-time').value)" class="bg-blue-600 hover:bg-blue-500 px-2 py-1 rounded-md text-[10px] font-bold">SET</button>
+                    </div>
+                    <div class="flex gap-1">
+                        <button onclick="app.startTimer()" class="flex-1 bg-green-600 hover:bg-green-500 py-1 rounded-md text-[10px] font-bold">START</button>
+                        <button onclick="app.stopTimer()" class="flex-1 bg-red-600 hover:bg-red-500 py-1 rounded-md text-[10px] font-bold">STOP</button>
+                    </div>
                 </div>
             </div>
+
             <div id="admin-controls" class="flex gap-3">
                 <button onclick="app.undo()" class="bg-slate-800 hover:bg-slate-700 px-4 py-2 rounded-xl text-xs font-bold transition">UNDO</button>
-                <button onclick="app.lockSesi()" class="bg-red-600 hover:bg-red-500 px-4 py-2 rounded-xl text-xs font-bold transition">AKHIRI SESI</button>
+                <button onclick="app.lockSesi()" class="bg-red-600 hover:bg-red-500 px-4 py-2 rounded-xl text-xs font-bold transition shadow-lg shadow-red-500/20">AKHIRI SESI</button>
             </div>
         </nav>
         <main class="flex-1 flex overflow-hidden">
@@ -84,7 +94,7 @@
     </section>
 
     <div id="modal-verify" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-        <div class="glass p-8 rounded-[32px] w-full max-w-lg border border-slate-600">
+        <div class="glass p-8 rounded-[32px] w-full max-w-lg border border-slate-600 shadow-2xl">
             <h3 id="modal-title" class="text-2xl font-black text-white mb-1">Nama Sesi</h3>
             <p id="modal-babak" class="text-sm font-bold text-blue-400 uppercase tracking-widest mb-6">Babak</p>
             <div class="bg-slate-800/80 rounded-2xl p-4 mb-6 max-h-60 overflow-y-auto">
@@ -95,7 +105,7 @@
             </div>
             <div class="flex gap-3">
                 <button onclick="document.getElementById('modal-verify').classList.add('hidden')" class="flex-1 bg-slate-700 hover:bg-slate-600 font-bold py-4 rounded-2xl">BATAL</button>
-                <button id="btn-start-sesi" class="flex-1 bg-green-600 hover:bg-green-500 font-bold py-4 rounded-2xl">MULAI SESI</button>
+                <button id="btn-start-sesi" class="flex-1 bg-green-600 hover:bg-green-500 font-bold py-4 rounded-2xl shadow-lg shadow-green-500/20">MULAI SESI</button>
             </div>
         </div>
     </div>
