@@ -9,147 +9,134 @@
     <style>
         :root {
             --bg-dark: #0f172a;
-            --accent: #3b82f6;
             --gold: #fbbf24;
         }
         body {
             font-family: 'Plus Jakarta Sans', sans-serif;
             background-color: var(--bg-dark);
-            background-image: 
-                radial-gradient(at 0% 0%, rgba(59, 130, 246, 0.15) 0px, transparent 50%),
-                radial-gradient(at 100% 100%, rgba(236, 72, 153, 0.1) 0px, transparent 50%);
+            background-image: radial-gradient(at 0% 0%, rgba(59, 130, 246, 0.15) 0px, transparent 50%), radial-gradient(at 100% 100%, rgba(236, 72, 153, 0.1) 0px, transparent 50%);
             overflow-x: hidden;
         }
-        .glass {
-            background: rgba(30, 41, 59, 0.7);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-        .score-text {
-            font-family: 'JetBrains Mono', monospace;
-            text-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
-        }
-        .winner-card {
-            border: 2px solid var(--gold) !important;
-            box-shadow: 0 0 30px rgba(251, 191, 36, 0.3);
-            transform: scale(1.02);
-        }
-        .history-item {
-            border-left: 3px solid var(--accent);
-            animation: slideIn 0.3s ease-out;
-        }
-        @keyframes slideIn {
-            from { opacity: 0; transform: translateX(-10px); }
-            to { opacity: 1; transform: translateX(0); }
-        }
+        .glass { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.1); }
+        .score-text { font-family: 'JetBrains Mono', monospace; text-shadow: 0 0 20px rgba(255, 255, 255, 0.3); }
+        .winner-card { box-shadow: 0 0 30px rgba(251, 191, 36, 0.3); transform: scale(1.02); z-index: 10; }
+        .history-item { animation: slideIn 0.3s ease-out; }
+        @keyframes slideIn { from { opacity: 0; transform: translateX(-10px); } to { opacity: 1; transform: translateX(0); } }
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
         .btn-action { transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
         .btn-action:active { transform: scale(0.9); }
+        
+        /* Pewarnaan Border Tim Otomatis */
+        .team-0 { border-top-color: #ef4444; } /* Red */
+        .team-1 { border-top-color: #3b82f6; } /* Blue */
+        .team-2 { border-top-color: #eab308; } /* Yellow */
+        .team-3 { border-top-color: #22c55e; } /* Green */
+        .team-4 { border-top-color: #a855f7; } /* Purple */
+        .team-5 { border-top-color: #06b6d4; } /* Cyan */
     </style>
 </head>
-<body class="text-slate-100 min-h-screen">
+<body class="text-slate-100 min-h-screen flex flex-col">
 
     <audio id="snd-tick" src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg"></audio>
     <audio id="snd-end" src="https://actions.google.com/sounds/v1/alarms/bugle_tune.ogg"></audio>
 
-    <section id="view-login" class="flex items-center justify-center min-h-screen p-4">
+    <section id="view-login" class="flex items-center justify-center min-h-screen p-4 absolute inset-0 z-50 bg-slate-900">
         <div class="glass p-10 rounded-3xl w-full max-w-md shadow-2xl relative overflow-hidden">
             <div class="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500"></div>
             <div class="text-center mb-8">
                 <h1 class="text-3xl font-extrabold tracking-tighter text-white">LCC PAI <span class="text-blue-500">DIGITAL</span></h1>
-                <p class="text-slate-400 text-sm mt-2">Sistem Skoring Profesional v2.0</p>
+                <p class="text-slate-400 text-sm mt-2">Sistem Skoring Profesional v3.0</p>
             </div>
             <div class="space-y-4">
-                <div>
-                    <label class="text-xs font-bold text-slate-500 uppercase ml-1">Username</label>
-                    <input type="text" id="user" class="w-full bg-slate-800/50 border border-slate-700 p-4 rounded-2xl focus:ring-2 focus:ring-blue-500 outline-none transition mt-1" placeholder="Admin/Operator">
-                </div>
-                <div>
-                    <label class="text-xs font-bold text-slate-500 uppercase ml-1">Password</label>
-                    <input type="password" id="pass" class="w-full bg-slate-800/50 border border-slate-700 p-4 rounded-2xl focus:ring-2 focus:ring-blue-500 outline-none transition mt-1" placeholder="••••••••">
-                </div>
-                <button onclick="app.login()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-4 rounded-2xl shadow-lg shadow-blue-900/20 transition-all active:scale-95 mt-4">
-                    AUTHENTICATION
-                </button>
+                <input type="text" id="user" class="w-full bg-slate-800/50 border border-slate-700 p-4 rounded-2xl focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Username (Admin/Layar)">
+                <input type="password" id="pass" class="w-full bg-slate-800/50 border border-slate-700 p-4 rounded-2xl focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Password">
+                <button onclick="app.login()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-4 rounded-2xl shadow-lg shadow-blue-900/20 active:scale-95 transition-all">MASUK SISTEM</button>
             </div>
         </div>
     </section>
 
-    <section id="view-dashboard" class="hidden p-6 md:p-12 max-w-7xl mx-auto">
-        <header class="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-4">
+    <section id="view-dashboard" class="hidden p-6 md:p-12 max-w-7xl mx-auto w-full">
+        <header class="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-4 border-b border-slate-700 pb-6">
             <div>
-                <h2 class="text-4xl font-black text-white">PILIH <span class="text-blue-500">SESI</span></h2>
-                <p class="text-slate-400">Silahkan pilih sesi pertandingan yang akan dilaksanakan</p>
+                <h2 class="text-4xl font-black text-white">PILIH <span class="text-blue-500">SESI LOMBA</span></h2>
+                <p class="text-slate-400">Jadwal bersumber dari Master Database Excel</p>
             </div>
-            <div class="glass px-6 py-3 rounded-2xl border-blue-500/30">
+            <div class="glass px-6 py-3 rounded-2xl border-blue-500/30 text-right">
                 <p id="info-user" class="text-sm font-bold text-blue-400"></p>
                 <p id="info-role" class="text-[10px] text-slate-500 uppercase tracking-widest"></p>
             </div>
         </header>
-        <div id="session-list" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            </div>
+        <div id="session-list" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"></div>
     </section>
 
     <section id="view-scoring" class="hidden flex flex-col h-screen overflow-hidden">
-        <header class="glass m-4 p-4 rounded-2xl flex justify-between items-center shadow-xl border-b-0 shrink-0">
+        <header class="glass m-4 p-4 rounded-2xl flex justify-between items-center shadow-xl shrink-0 relative">
             <div class="flex items-center gap-4">
-                <button onclick="location.reload()" class="bg-slate-800 hover:bg-slate-700 p-3 rounded-xl transition">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
+                <button onclick="app.backToDashboard()" class="bg-slate-800 hover:bg-slate-700 p-3 rounded-xl transition group">
+                    <svg class="w-5 h-5 group-hover:-translate-x-1 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
                 </button>
                 <div>
-                    <h2 id="sc-judul" class="text-xl font-extrabold text-white">LCC PAI 2025</h2>
+                    <h2 id="sc-judul" class="text-xl font-extrabold text-white">LCC PAI</h2>
                     <p id="sc-babak" class="text-xs text-blue-400 font-bold uppercase tracking-widest"></p>
                 </div>
             </div>
 
+            <div id="banner-locked" class="hidden absolute left-1/2 transform -translate-x-1/2 bg-red-600/90 text-white px-6 py-2 rounded-full font-bold border border-red-400 shadow-[0_0_15px_rgba(220,38,38,0.5)] animate-pulse flex items-center gap-2">
+                🔒 SESI TELAH DIAKHIRI
+            </div>
+
             <div class="flex items-center gap-6 bg-black/30 px-6 py-2 rounded-2xl border border-white/5">
-                <div id="timer-display" class="text-5xl font-mono font-black text-red-500 w-24 text-center">00</div>
+                <div id="timer-display" class="text-5xl font-mono font-black text-red-500 w-24 text-center select-none">00</div>
                 <div id="timer-controls" class="flex flex-col gap-1">
                     <div class="flex gap-1">
-                        <button onclick="app.setT(15)" class="bg-slate-700 hover:bg-slate-600 px-2 py-1 rounded-md text-[10px] font-bold">15s</button>
-                        <button onclick="app.setT(30)" class="bg-slate-700 hover:bg-slate-600 px-2 py-1 rounded-md text-[10px] font-bold">30s</button>
+                        <button onclick="app.setT(10)" class="bg-slate-700 hover:bg-slate-600 px-2 py-1 rounded-md text-[10px] font-bold transition">10s</button>
+                        <button onclick="app.setT(30)" class="bg-slate-700 hover:bg-slate-600 px-2 py-1 rounded-md text-[10px] font-bold transition">30s</button>
                         <input type="number" id="t-man" class="w-12 bg-slate-900 text-center text-[10px] rounded border border-slate-700" placeholder="Sec">
-                        <button onclick="app.setManualT()" class="bg-blue-600 px-2 rounded-md text-[10px] font-bold uppercase">SET</button>
+                        <button onclick="app.setManualT()" class="bg-blue-600 hover:bg-blue-500 px-2 rounded-md text-[10px] font-bold uppercase">SET</button>
                     </div>
                     <div class="flex gap-1">
-                        <button onclick="app.startT()" class="flex-1 bg-green-600 hover:bg-green-500 py-1 rounded-md text-[10px] font-bold">START</button>
-                        <button onclick="app.stopT()" class="flex-1 bg-red-600 hover:bg-red-500 py-1 rounded-md text-[10px] font-bold">STOP</button>
+                        <button onclick="app.toggleTimer()" class="flex-1 bg-green-600 hover:bg-green-500 py-1 rounded-md text-[10px] font-bold" title="Shortcut: SPASI">START/STOP</button>
+                        <button onclick="app.resetT()" class="flex-1 bg-red-600 hover:bg-red-500 py-1 rounded-md text-[10px] font-bold">RESET</button>
                     </div>
                 </div>
             </div>
-
-            <div class="hidden md:block text-right">
-                <span id="sync-status" class="text-[10px] font-bold text-green-400 bg-green-400/10 px-3 py-1 rounded-full italic">● ONLINE</span>
+            
+            <div class="hidden md:flex flex-col items-end gap-2">
+                <span id="sync-status" class="text-[10px] font-bold text-green-400 bg-green-400/10 px-3 py-1 rounded-full">● ONLINE</span>
+                <div id="admin-controls" class="flex gap-2">
+                    <button onclick="app.undoLast()" class="bg-slate-700 hover:bg-slate-600 text-xs px-3 py-1 rounded border border-slate-500 transition">↩ UNDO</button>
+                    <button id="btn-lock" onclick="app.toggleLock()" class="bg-red-600 hover:bg-red-500 text-white text-xs font-bold px-3 py-1 rounded border border-red-400 shadow-lg transition">AKHIRI SESI</button>
+                </div>
             </div>
         </header>
 
-        <div id="grid-scoring" class="flex-grow grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 p-4 overflow-y-auto">
+        <div id="grid-scoring" class="flex-grow flex flex-wrap justify-center content-center gap-6 p-4 overflow-y-auto">
             </div>
 
-        <footer class="glass mx-4 mb-4 p-4 rounded-2xl border-t-0 shrink-0">
-            <div class="flex justify-between items-center mb-3">
-                <h3 class="text-xs font-black text-slate-500 uppercase tracking-widest flex items-center gap-2">
-                    <span class="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></span>
-                    LOG AKTIVITAS & TRANSPARANSI NILAI
-                </h3>
-            </div>
-            <div id="history-log" class="h-24 overflow-y-auto space-y-2 pr-2">
-                </div>
+        <footer class="glass mx-4 mb-4 p-4 rounded-2xl shrink-0">
+            <h3 class="text-xs font-black text-slate-500 uppercase tracking-widest flex items-center gap-2 mb-2">
+                <span class="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></span> LOG AKTIVITAS & TRANSPARANSI
+            </h3>
+            <div id="history-log" class="h-20 overflow-y-auto space-y-1 pr-2 text-slate-300"></div>
         </footer>
     </section>
 
     <script>
+        // MASUKKAN LINK GOOGLE APPS SCRIPT ANDA DI SINI
         const API_URL = "https://script.google.com/macros/s/AKfycbwZ1Bcc1p-WcHfuNUSjtOTY7FvjRhBeLWWGj1IZoDqxMt0mmyCi22rIbHI4lRxvSQPIhA/exec"; 
 
         const app = {
-            role: null, user: null, sesi: null, scores: [], history: [], timer: null, timeLeft: 0,
+            role: null, user: null, sesi: null, 
+            scores: [], historyText: [], historyActions: [], 
+            isLocked: false, timerInterval: null, timeLeft: 0,
             
-            // --- LOGIN & DASHBOARD ---
             async login() {
                 const u = document.getElementById('user').value, p = document.getElementById('pass').value;
                 if(!u || !p) return alert("Isi username & password!");
+                const btn = document.querySelector('#view-login button');
+                btn.innerText = "MEMPROSES..."; btn.disabled = true;
                 
                 try {
                     const res = await (await fetch(API_URL, { method:'POST', body: JSON.stringify({action:'login', user:u, pass:p})})).json();
@@ -160,34 +147,35 @@
                         document.getElementById('info-user').innerText = res.name;
                         document.getElementById('info-role').innerText = res.role;
                         this.loadSessions();
-                    } else alert("Login Gagal! Periksa kembali akun Anda.");
-                } catch(e) { alert("Koneksi Error!"); }
+                    } else { alert("Login Gagal! Username/Password salah."); btn.innerText = "MASUK SISTEM"; btn.disabled = false; }
+                } catch(e) { alert("Koneksi Error!"); btn.innerText = "MASUK SISTEM"; btn.disabled = false; }
             },
 
             async loadSessions() {
                 const list = document.getElementById('session-list');
-                list.innerHTML = `<div class="col-span-full text-center p-10"><div class="animate-spin inline-block w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full mb-4"></div><p class="text-slate-500 font-bold">Menghubungkan ke Database Excel...</p></div>`;
+                list.innerHTML = `<div class="col-span-full text-center p-10"><div class="animate-spin w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full mb-4 mx-auto"></div><p class="text-slate-500 font-bold">Memuat Data Excel...</p></div>`;
                 
-                const res = await (await fetch(API_URL, { method:'POST', body: JSON.stringify({action:'getSessions'})})).json();
-                let html = "";
-                res.sessions.forEach(s => {
-                    html += `
-                    <div onclick="app.openSesi('${encodeURIComponent(JSON.stringify(s))}')" class="glass p-8 rounded-3xl border-l-4 border-blue-500 cursor-pointer hover:bg-slate-800/80 transition-all hover:-translate-y-2 group shadow-xl">
-                        <span class="text-[10px] font-black text-blue-500 bg-blue-500/10 px-3 py-1 rounded-full">${s.babak}</span>
-                        <h3 class="text-2xl font-black mt-4 text-white group-hover:text-blue-400">${s.nama}</h3>
-                        <div class="flex items-center gap-2 mt-6 text-slate-500 text-sm font-semibold">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
-                            ${s.teams.length} Peserta Terdaftar
-                        </div>
-                    </div>`;
-                });
-                list.innerHTML = html;
+                try {
+                    const res = await (await fetch(API_URL, { method:'POST', body: JSON.stringify({action:'getSessions'})})).json();
+                    let html = "";
+                    res.sessions.forEach(s => {
+                        html += `
+                        <div onclick="app.openSesi('${encodeURIComponent(JSON.stringify(s))}')" class="glass p-8 rounded-3xl border-l-4 border-blue-500 cursor-pointer hover:bg-slate-800 transition-all hover:-translate-y-2 shadow-xl group">
+                            <span class="text-[10px] font-black text-blue-500 bg-blue-500/10 px-3 py-1 rounded-full">${s.babak}</span>
+                            <h3 class="text-2xl font-black mt-4 group-hover:text-yellow-400 transition">${s.nama}</h3>
+                            <p class="mt-4 text-slate-400 text-sm font-semibold">${s.teams.length} Peserta Terdaftar</p>
+                        </div>`;
+                    });
+                    list.innerHTML = html;
+                } catch (e) { list.innerHTML = `<p class="text-red-500 col-span-full text-center">Gagal memuat sesi.</p>`; }
             },
 
             openSesi(encoded) {
                 this.sesi = JSON.parse(decodeURIComponent(encoded));
                 this.scores = new Array(this.sesi.teams.length).fill(0);
-                this.history = [`Sesi ${this.sesi.nama} Siap dimulai.`];
+                this.historyText = [`Sesi ${this.sesi.nama} Siap dimulai.`];
+                this.historyActions = []; 
+                this.isLocked = false;
                 
                 document.getElementById('view-dashboard').classList.add('hidden');
                 document.getElementById('view-scoring').classList.remove('hidden');
@@ -195,48 +183,76 @@
                 document.getElementById('sc-babak').innerText = this.sesi.babak;
 
                 const isViewer = this.role === 'VIEWER';
-                if(isViewer) document.getElementById('timer-controls').classList.add('hidden');
+                if(isViewer) {
+                    document.getElementById('timer-controls').classList.add('hidden');
+                    document.getElementById('admin-controls').classList.add('hidden');
+                }
 
                 this.renderGrid();
                 this.renderHistory();
 
-                // SYNC: Local & Cloud
+                // DUAL SYNC SYSTEM
                 if (isViewer) {
-                    setInterval(() => this.pullCloud(), 3000);
-                    window.addEventListener('storage', (e) => {
-                        if(e.key === `lcc_v2_${this.sesi.id}`) {
+                    setInterval(() => this.pullCloud(), 3000); // Polling tiap 3 detik
+                    window.addEventListener('storage', (e) => { // Instant Sync untuk 1 laptop
+                        if(e.key === `lcc_v3_${this.sesi.id}`) {
                             const d = JSON.parse(e.newValue);
-                            this.scores = d.scores; this.history = d.history;
+                            this.scores = d.scores; this.historyText = d.historyText; this.isLocked = d.isLocked;
                             this.renderGrid(); this.renderHistory();
                         }
                     });
                 }
             },
 
-            // --- SCORING CORE ---
+            backToDashboard() {
+                if(confirm("Yakin ingin kembali ke Dashboard?\nSkor saat ini tetap aman di background/server.")) {
+                    document.getElementById('view-scoring').classList.add('hidden');
+                    document.getElementById('view-dashboard').classList.remove('hidden');
+                    this.sesi = null; this.resetT();
+                }
+            },
+
+            // --- SCORING & LOGIC ---
             renderGrid() {
                 let max = Math.max(...this.scores);
                 let html = "";
+                
+                // Atur Tampilan Kunci
+                const bannerLock = document.getElementById('banner-locked');
+                const btnLock = document.getElementById('btn-lock');
+                if(this.isLocked) {
+                    bannerLock.classList.remove('hidden');
+                    if(btnLock) { btnLock.innerText = "🔓 BUKA KUNCI"; btnLock.className = "bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold px-3 py-1 rounded shadow transition"; }
+                } else {
+                    bannerLock.classList.add('hidden');
+                    if(btnLock) { btnLock.innerText = "🔒 AKHIRI SESI"; btnLock.className = "bg-red-600 hover:bg-red-500 text-white text-xs font-bold px-3 py-1 rounded border border-red-400 shadow-lg transition"; }
+                }
+
+                const teamLabels = ['A','B','C','D','E','F'];
+
                 this.sesi.teams.forEach((t, i) => {
-                    let isWinner = max > 0 && this.scores[i] === max;
+                    let isWinner = (max > 0 && this.scores[i] === max && this.isLocked); // Mahkota hanya final saat dikunci, atau glow saat jalan
+                    let isLeading = (max > 0 && this.scores[i] === max && !this.isLocked);
+                    
                     html += `
-                    <div class="glass p-6 rounded-3xl flex flex-col items-center justify-between border-b-4 border-slate-700 transition-all duration-500 ${isWinner ? 'winner-card' : ''} relative">
-                        ${isWinner ? '<div class="absolute -top-5 text-3xl animate-bounce">👑</div>' : ''}
-                        <div class="text-center w-full">
-                            <p class="text-[10px] font-black text-slate-500 uppercase tracking-tighter mb-1">REGU ${['A','B','C','D','E','F'][i]}</p>
-                            <h4 class="text-sm font-bold text-white truncate w-full px-2">${t.nama}</h4>
-                            <p class="text-[9px] text-blue-500 font-bold uppercase">${t.kec}</p>
+                    <div class="glass p-6 rounded-3xl flex flex-col items-center justify-between border-t-8 team-${i} transition-all duration-500 ${(isWinner || isLeading) ? 'winner-card' : ''} relative w-full sm:w-[45%] md:w-[30%] lg:w-[250px]">
+                        ${isWinner ? '<div class="absolute -top-6 text-5xl drop-shadow-lg">👑</div>' : ''}
+                        
+                        <div class="text-center w-full mb-4">
+                            <span class="text-[10px] font-black text-slate-800 bg-slate-300 px-3 py-1 rounded-full uppercase tracking-widest mb-2 inline-block shadow">REGU ${teamLabels[i]}</span>
+                            <h4 class="text-sm font-bold text-white uppercase mt-2 h-10 overflow-hidden flex items-center justify-center leading-tight">${t.nama}</h4>
+                            <p class="text-[10px] text-slate-400 font-bold uppercase mt-1">NO: ${t.no}</p>
                         </div>
                         
-                        <div class="score-text text-7xl font-black text-white py-6">${this.scores[i]}</div>
+                        <div class="score-text text-7xl font-black ${(isWinner||isLeading) ? 'text-yellow-400' : 'text-white'} py-4 transition-colors">${this.scores[i]}</div>
 
-                        ${this.role !== 'VIEWER' ? `
-                            <div class="grid grid-cols-2 gap-2 w-full">
-                                <button onclick="app.upd(${i}, 100)" class="btn-action bg-green-600 hover:bg-green-500 py-3 rounded-xl text-[10px] font-black shadow-lg shadow-green-900/20">+100</button>
-                                <button onclick="app.upd(${i}, 50)" class="btn-action bg-blue-600 hover:bg-blue-500 py-3 rounded-xl text-[10px] font-black shadow-lg shadow-blue-900/20">+50</button>
-                                <button onclick="app.upd(${i}, -50)" class="btn-action bg-orange-600 hover:bg-orange-500 py-3 rounded-xl text-[10px] font-black shadow-lg shadow-orange-900/20">-50</button>
-                                <button onclick="app.upd(${i}, -100)" class="btn-action bg-red-600 hover:bg-red-500 py-3 rounded-xl text-[10px] font-black shadow-lg shadow-red-900/20">-100</button>
-                                <button onclick="app.customUpd(${i})" class="col-span-2 bg-slate-700 hover:bg-slate-600 py-2 rounded-xl text-[9px] font-bold border border-slate-600">MANUAL</button>
+                        ${(this.role !== 'VIEWER' && !this.isLocked) ? `
+                            <div class="grid grid-cols-2 gap-2 w-full mt-4">
+                                <button onclick="app.upd(${i}, 100)" class="btn-action bg-green-600 hover:bg-green-500 py-3 rounded-xl text-[12px] font-black shadow-lg shadow-green-900/20">+100</button>
+                                <button onclick="app.upd(${i}, 50)" class="btn-action bg-blue-600 hover:bg-blue-500 py-3 rounded-xl text-[12px] font-black shadow-lg shadow-blue-900/20">+50</button>
+                                <button onclick="app.upd(${i}, -50)" class="btn-action bg-orange-600 hover:bg-orange-500 py-3 rounded-xl text-[12px] font-black shadow-lg shadow-orange-900/20">-50</button>
+                                <button onclick="app.upd(${i}, -100)" class="btn-action bg-red-600 hover:bg-red-500 py-3 rounded-xl text-[12px] font-black shadow-lg shadow-red-900/20">-100</button>
+                                <button onclick="app.customUpd(${i})" class="col-span-2 bg-slate-700 hover:bg-slate-600 py-2 rounded-xl text-[10px] font-bold border border-slate-600 uppercase tracking-wider">Nilai Manual</button>
                             </div>
                         ` : ''}
                     </div>`;
@@ -245,49 +261,98 @@
             },
 
             upd(idx, val, note = "") {
-                this.scores[idx] += val;
-                let log = `[${new Date().toLocaleTimeString('id-ID')}] ${this.sesi.teams[idx].nama} ${val > 0 ? '+'+val : val} Poin ${note}`;
-                this.history.unshift(log);
-                if(this.history.length > 30) this.history.pop();
+                if(this.isLocked) return alert("Sesi Terkunci! Tekan 'Buka Kunci' jika ingin merubah nilai.");
                 
-                this.renderGrid(); this.renderHistory(); this.pushSync();
+                // Konfirmasi untuk minus krusial
+                if(val === -100) {
+                    if(!confirm(`⚠️ Peringatan!\nYakin kurangi 100 poin untuk ${this.sesi.teams[idx].nama}?`)) return;
+                }
+
+                this.scores[idx] += val;
+                
+                // Simpan untuk fitur UNDO
+                this.historyActions.push({idx: idx, val: val});
+
+                // Simpan log teks
+                let tName = this.sesi.teams[idx].nama;
+                let logText = `[${new Date().toLocaleTimeString('id-ID')}] REGU ${['A','B','C','D','E','F'][idx]} (${tName}) : ${val > 0 ? '+'+val : val} Poin ${note ? ' — '+note : ''}`;
+                this.log(logText);
             },
 
             customUpd(idx) {
-                let v = prompt("Masukkan nilai (gunakan '-' untuk mengurangi):", "0");
+                if(this.isLocked) return alert("Sesi Terkunci!");
+                let v = prompt(`Masukkan nilai untuk Regu ${['A','B','C','D','E','F'][idx]}\n(Ketik angka minus '-' untuk mengurangi poin):`, "0");
                 if (v && !isNaN(v)) {
-                    let n = prompt("Alasan (Opsional):", "Input Manual");
+                    let n = prompt("Keterangan Alasan Nilai (Contoh: Ralat Juri / Soal Sempurnaan):", "Input Manual");
+                    if(n === null) n = ""; // jika cancel prompt kedua
                     this.upd(idx, parseInt(v), `(${n})`);
                 }
             },
 
+            undoLast() {
+                if(this.isLocked) return alert("Buka kunci sesi terlebih dahulu untuk menggunakan Undo.");
+                if(this.historyActions.length === 0) return alert("Belum ada aksi skor yang bisa dibatalkan.");
+                
+                const last = this.historyActions.pop(); // Ambil & hapus aksi terakhir
+                this.scores[last.idx] -= last.val; // Kembalikan nilai (dikurang dari nilai sebelumnya)
+                
+                this.log(`[UNDO] Membatalkan nilai ${last.val > 0 ? '+'+last.val : last.val} untuk REGU ${['A','B','C','D','E','F'][last.idx]}`);
+            },
+
+            toggleLock() {
+                if(!this.isLocked) {
+                    if(confirm("AKHIRI SESI SEKARANG?\nTombol penambahan skor akan dikunci dan Pemenang akan disahkan.")) {
+                        this.isLocked = true;
+                        this.log(`🔒 SESI TELAH DIAKHIRI DAN SKOR DIKUNCI OLEH OPERATOR.`);
+                        document.getElementById('snd-end').play().catch(()=>{});
+                    }
+                } else {
+                    if(confirm("BUKA KUNCI SESI?\nIni akan memungkinkan Anda untuk mengedit kembali skor yang sudah disahkan.")) {
+                        this.isLocked = false;
+                        this.log(`🔓 KUNCI SESI DIBUKA KEMBALI UNTUK REVISI JURI.`);
+                    }
+                }
+                this.renderGrid();
+                this.pushSync();
+            },
+
+            log(text) {
+                this.historyText.unshift(text);
+                if(this.historyText.length > 40) this.historyText.pop();
+                this.renderGrid();
+                this.renderHistory();
+                this.pushSync();
+            },
+
             renderHistory() {
-                document.getElementById('history-log').innerHTML = this.history.map(h => {
-                    let color = h.includes('+') ? 'text-green-400' : (h.includes('-') ? 'text-red-400' : 'text-slate-400');
-                    return `<div class="history-item glass px-4 py-2 rounded-xl text-[11px] font-medium ${color}">${h}</div>`;
+                document.getElementById('history-log').innerHTML = this.historyText.map(h => {
+                    let color = h.includes('+') ? 'text-green-400' : (h.includes('-') ? 'text-red-400' : (h.includes('🔒') || h.includes('🔓') ? 'text-amber-400 font-bold' : 'text-slate-400'));
+                    return `<div class="history-item border-l-2 border-slate-600 pl-3 py-1 text-[11px] font-mono ${color}">${h}</div>`;
                 }).join('');
             },
 
             // --- SYNC ENGINE ---
             pushSync() {
-                const data = { scores: this.scores, history: this.history };
-                localStorage.setItem(`lcc_v2_${this.sesi.id}`, JSON.stringify(data));
+                const data = { scores: this.scores, historyText: this.historyText, isLocked: this.isLocked };
+                localStorage.setItem(`lcc_v3_${this.sesi.id}`, JSON.stringify(data)); // Instant Local Sync
                 
-                document.getElementById('sync-status').innerText = "⏳ SYNCING...";
-                document.getElementById('sync-status').className = "text-[10px] font-bold text-yellow-400 bg-yellow-400/10 px-3 py-1 rounded-full italic";
-
-                fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: "syncScore", idSesi: this.sesi.id, ...data })})
-                    .then(() => {
-                        document.getElementById('sync-status').innerText = "● ONLINE";
-                        document.getElementById('sync-status').className = "text-[10px] font-bold text-green-400 bg-green-400/10 px-3 py-1 rounded-full italic";
-                    });
+                const st = document.getElementById('sync-status');
+                if(st) {
+                    st.innerText = "⏳ SYNC...";
+                    st.className = "text-[10px] font-bold text-yellow-400 bg-yellow-400/10 px-3 py-1 rounded-full";
+                    fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: "syncScore", idSesi: this.sesi.id, ...data })})
+                        .then(() => {
+                            st.innerText = "● ONLINE";
+                            st.className = "text-[10px] font-bold text-green-400 bg-green-400/10 px-3 py-1 rounded-full";
+                        });
+                }
             },
 
             async pullCloud() {
                 try {
                     const res = await (await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: "getLive", idSesi: this.sesi.id })})).json();
-                    if(res) {
-                        this.scores = res.scores; this.history = res.history;
+                    if(res && res.scores) {
+                        this.scores = res.scores; this.historyText = res.historyText; this.isLocked = res.isLocked;
                         this.renderGrid(); this.renderHistory();
                     }
                 } catch(e) {}
@@ -300,22 +365,36 @@
                 const el = document.getElementById('timer-display');
                 el.innerText = this.timeLeft.toString().padStart(2,'0');
                 el.classList.toggle('text-yellow-500', this.timeLeft <= 5 && this.timeLeft > 0);
+                el.classList.toggle('scale-110', this.timeLeft <= 5 && this.timeLeft > 0); // Efek membesar di 5 detik akhir
             },
+            toggleTimer() { this.timerInterval ? this.stopT() : this.startT(); },
             startT() {
-                clearInterval(this.timer);
-                this.timer = setInterval(() => {
+                if(this.timeLeft <= 0) return;
+                clearInterval(this.timerInterval);
+                this.timerInterval = setInterval(() => {
                     if(this.timeLeft > 0) {
                         this.timeLeft--; this.updateTUI();
-                        if(this.timeLeft <= 5) document.getElementById('snd-tick').play().catch(e=>{});
+                        if(this.timeLeft <= 5 && this.timeLeft > 0) document.getElementById('snd-tick').play().catch(()=>{});
                     } else {
-                        clearInterval(this.timer);
-                        document.getElementById('snd-end').play().catch(e=>{});
-                        alert("WAKTU HABIS!");
+                        clearInterval(this.timerInterval);
+                        this.timerInterval = null;
+                        document.getElementById('snd-end').play().catch(()=>{});
                     }
                 }, 1000);
             },
-            stopT() { clearInterval(this.timer); this.setT(0); }
+            stopT() { clearInterval(this.timerInterval); this.timerInterval = null; },
+            resetT() { this.stopT(); this.setT(0); }
         };
+
+        // GLOBAL KEYBOARD SHORTCUTS
+        document.addEventListener('keydown', (e) => {
+            // SPASI untuk Start/Stop Timer (Hanya jika tidak sedang mengetik di input text)
+            if(app.sesi && e.code === 'Space' && e.target.tagName !== 'INPUT' && app.role !== 'VIEWER') {
+                e.preventDefault(); // Mencegah layar scroll ke bawah
+                app.toggleTimer();
+            }
+        });
+
     </script>
 </body>
 </html>
