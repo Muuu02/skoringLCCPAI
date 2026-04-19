@@ -13,7 +13,6 @@ const app = {
     historyActions: [],
     isLocked: false,
     
-    // Variabel untuk Timer Baru
     timerValue: 0,
     timerInterval: null,
 
@@ -76,7 +75,6 @@ const app = {
         this.babakList.forEach((babak, index) => {
             let sesiDiBabakIni = this.allSessions.filter(s => s.babak === babak);
             let isThisBabakDone = sesiDiBabakIni.every(s => s.isSelesai);
-            // ADMIN dan OPERATOR bisa bypass lock, VIEWER tidak bisa
             let isLocked = !isPreviousBabakDone && this.role === 'VIEWER';
             let activeClass = (this.activeBabakIndex === index) ? 'bg-blue-600 text-white' : 'bg-slate-800 text-slate-400 hover:bg-slate-700';
             
@@ -148,8 +146,9 @@ const app = {
             this.isLocked = d.isLocked || false;
         } else {
             this.scores = new Array(this.sesi.teams.length).fill(0);
-            this.historyText = ["Sesi siap dimulai."];
-            this.historyActions = []; this.isLocked = false;
+            this.historyText = [`Sesi ${this.sesi.nama} siap dimulai.`];
+            this.historyActions = []; 
+            this.isLocked = false;
         }
         
         document.getElementById('view-dashboard').classList.add('hidden');
@@ -157,7 +156,6 @@ const app = {
         document.getElementById('sc-judul').innerText = this.sesi.nama;
         document.getElementById('sc-babak').innerText = this.sesi.babak;
 
-        // Reset timer ke 0 setiap buka sesi
         this.setTimer(0);
 
         if(this.role === 'VIEWER') {
@@ -176,32 +174,34 @@ const app = {
 
     renderGrid() {
         const grid = document.getElementById('team-grid');
-        const cols = this.sesi.teams.length > 4 ? 'md:grid-cols-3' : 'md:grid-cols-2';
-        grid.className = `flex-1 p-6 grid grid-cols-1 ${cols} gap-4 overflow-y-auto content-start`;
+        const cols = this.sesi.teams.length > 4 ? 'md:grid-cols-5' : 'md:grid-cols-4'; // Menyesuaikan lebar kolom seperti desain
+        grid.className = `flex-1 p-6 grid grid-cols-1 sm:grid-cols-2 ${cols} gap-4 overflow-y-auto content-start`;
 
         let html = "";
         this.sesi.teams.forEach((t, i) => {
             const regu = ['A','B','C','D','E','F'][i];
-            const color = ['blue','yellow','green','red','purple','pink'][i];
             
             html += `
-            <div class="glass p-6 rounded-[32px] border-b-4 border-${color}-500 flex flex-col justify-between shadow-xl">
-                <div class="flex justify-between items-start">
-                    <span class="bg-${color}-600 text-white text-[10px] font-black px-3 py-1 rounded-full">REGU ${regu}</span>
-                    <span class="text-slate-500 font-bold text-[10px]">${t.no}</span>
+            <div class="glass p-6 rounded-3xl flex flex-col justify-between shadow-xl">
+                <div class="text-center mb-4">
+                    <span class="text-slate-500 font-bold text-[10px] uppercase tracking-widest">REGU ${regu}</span>
+                    <h4 class="text-sm font-black text-white mt-1 leading-tight h-10 overflow-hidden">${t.nama}</h4>
+                    <span class="text-blue-500 font-bold text-[10px]">${t.no}</span>
                 </div>
-                <h4 class="text-lg font-black mt-3 leading-tight h-12 overflow-hidden">${t.nama}</h4>
                 
-                <div class="my-6 text-center">
-                    <div id="score-${i}" class="text-6xl font-black text-white tracking-tighter">${this.scores[i]}</div>
+                <div class="my-4 text-center flex-1 flex items-center justify-center">
+                    <div class="text-6xl font-black text-white tracking-tighter drop-shadow-md">${this.scores[i]}</div>
                 </div>
 
                 ${this.role !== 'VIEWER' && !this.isLocked ? `
-                <div class="grid grid-cols-2 gap-2">
-                    <button onclick="app.updateScore(${i}, 100)" class="bg-green-600 hover:bg-green-500 py-3 rounded-xl font-black text-sm shadow-lg shadow-green-500/20">+100</button>
-                    <button onclick="app.updateScore(${i}, -100)" class="bg-red-600 hover:bg-red-500 py-3 rounded-xl font-black text-sm shadow-lg shadow-red-500/20">-100</button>
-                    <button onclick="app.updateScore(${i}, 50)" class="bg-green-900/50 hover:bg-green-800 py-2 rounded-xl font-bold text-xs">+50</button>
-                    <button onclick="app.updateScore(${i}, -50)" class="bg-red-900/50 hover:bg-red-800 py-2 rounded-xl font-bold text-xs">-50</button>
+                <div>
+                    <div class="grid grid-cols-2 gap-2 mb-2">
+                        <button onclick="app.updateScore(${i}, 100)" class="bg-[#22c55e] hover:bg-[#16a34a] py-2 rounded-xl font-black text-sm transition-colors text-white">+100</button>
+                        <button onclick="app.updateScore(${i}, 50)" class="bg-[#3b82f6] hover:bg-[#2563eb] py-2 rounded-xl font-black text-sm transition-colors text-white">+50</button>
+                        <button onclick="app.updateScore(${i}, -50)" class="bg-[#f97316] hover:bg-[#ea580c] py-2 rounded-xl font-black text-sm transition-colors text-white">-50</button>
+                        <button onclick="app.updateScore(${i}, -100)" class="bg-[#ef4444] hover:bg-[#dc2626] py-2 rounded-xl font-black text-sm transition-colors text-white">-100</button>
+                    </div>
+                    <button onclick="app.setManualScore(${i})" class="w-full bg-[#334155] hover:bg-[#475569] py-2 rounded-xl font-bold text-xs uppercase tracking-widest transition-colors text-white">Manual</button>
                 </div>` : ''}
             </div>`;
         });
@@ -218,20 +218,42 @@ const app = {
         this.pushCloud();
     },
 
+    setManualScore(idx) {
+        if(this.isLocked) return;
+        const regu = ['A','B','C','D','E','F'][idx];
+        const currentScore = this.scores[idx];
+        
+        // Memunculkan popup input untuk set manual
+        const input = prompt(`Masukkan skor baru untuk Regu ${regu}:`, currentScore);
+        
+        if (input !== null && input !== "") {
+            const newScore = parseInt(input);
+            if (!isNaN(newScore)) {
+                const diff = newScore - currentScore; // Simpan selisihnya untuk fungsi Undo
+                this.historyActions.push({idx, val: diff});
+                this.scores[idx] = newScore;
+                this.addHistory(`Regu ${regu}: Skor diset manual menjadi ${newScore}`);
+                this.renderGrid();
+                this.pushCloud();
+            } else {
+                alert("Harap masukkan angka yang valid!");
+            }
+        }
+    },
+
     undo() {
         if(this.historyActions.length === 0 || this.isLocked) return;
         const last = this.historyActions.pop();
         this.scores[last.idx] -= last.val;
-        this.addHistory(`Undo: Nilai Regu ${['A','B','C','D','E','F'][last.idx]} dikembalikan`);
+        this.addHistory(`Undo: Aksi Regu ${['A','B','C','D','E','F'][last.idx]} dibatalkan`);
         this.renderGrid();
         this.pushCloud();
     },
 
-    // --- LOGIKA TIMER BARU ---
     setTimer(sec) {
         let s = parseInt(sec);
         if(isNaN(s) || s < 0) return;
-        this.stopTimer(); // Hentikan timer lama jika sedang jalan
+        this.stopTimer(); 
         this.timerValue = s;
         this.updateTimerDisplay();
     },
@@ -245,7 +267,7 @@ const app = {
 
     startTimer() {
         if(this.timerValue <= 0) return;
-        this.stopTimer(); // Mencegah double interval
+        this.stopTimer(); 
         this.timerInterval = setInterval(() => {
             this.timerValue--;
             this.updateTimerDisplay();
@@ -259,7 +281,6 @@ const app = {
     stopTimer() {
         clearInterval(this.timerInterval);
     },
-    // --------------------------
 
     addHistory(txt) {
         const now = new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit', second:'2-digit'});
@@ -275,8 +296,8 @@ const app = {
         const data = { scores: this.scores, historyText: this.historyText, isLocked: this.isLocked };
         localStorage.setItem(`lcc_v4_${this.sesi.id}`, JSON.stringify(data));
         
-        // PERBAIKAN: Selama bukan VIEWER (Berarti ADMIN atau OPERATOR), bisa nyimpen ke Excel
-        if(this.role !== 'VIEWER') {
+        // KEAMANAN: Hanya ADMIN atau OPERATOR yang bisa mengirim ke cloud
+        if(this.role === 'ADMIN' || this.role === 'OPERATOR') {
             fetch(API_URL, { method:'POST', body: JSON.stringify({action:'pushScore', id: this.sesi.id, ...data})});
         }
     },
@@ -294,11 +315,16 @@ const app = {
     },
 
     async lockSesi() {
-        if(confirm("Akhiri sesi ini? Data akan dikunci dan dikirim ke Excel.")) {
-            this.isLocked = true;
-            this.addHistory("🔒 SESI TELAH DIAKHIRI DAN SKOR DIKUNCI OLEH OPERATOR.");
-            await this.pushCloud();
-            this.renderGrid();
+        // KEAMANAN: Hanya role yang punya akses yang bisa mengunci
+        if(this.role === 'ADMIN' || this.role === 'OPERATOR') {
+            if(confirm("Akhiri sesi ini? Data akan dikunci dan dikirim ke Excel.")) {
+                this.isLocked = true;
+                this.addHistory("🔒 SESI TELAH DIAKHIRI DAN SKOR DIKUNCI OLEH OPERATOR.");
+                await this.pushCloud();
+                this.renderGrid(); // Merender ulang untuk menghilangkan tombol aksi
+            }
+        } else {
+            alert("Anda tidak memiliki izin untuk mengakhiri sesi ini.");
         }
     },
 
@@ -306,6 +332,6 @@ const app = {
         this.stopTimer();
         document.getElementById('view-scoring').classList.add('hidden');
         document.getElementById('view-dashboard').classList.remove('hidden');
-        this.loadSessions(); // Load ulang agar memunculkan badge DONE
+        this.loadSessions(); 
     }
 };
