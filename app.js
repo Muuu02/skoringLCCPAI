@@ -12,7 +12,10 @@ const app = {
     historyText: [],
     historyActions: [],
     isLocked: false,
-    timer: null,
+    
+    // Variabel untuk Timer Baru
+    timerValue: 0,
+    timerInterval: null,
 
     async login() {
         const userInput = document.getElementById('user').value;
@@ -22,7 +25,6 @@ const app = {
         btn.innerText = "MEMPROSES...";
         
         try {
-            // Meminta validasi ke Google Apps Script
             const req = await fetch(API_URL, { 
                 method: 'POST', 
                 body: JSON.stringify({ action: 'login', user: userInput, pass: passInput })
@@ -30,7 +32,7 @@ const app = {
             const res = await req.json();
             
             if(res.success) {
-                this.role = res.role;
+                this.role = res.role; // Akan terisi 'ADMIN' atau 'OPERATOR'
                 this.user = res.name;
                 this.showDashboard();
             } else {
@@ -74,7 +76,8 @@ const app = {
         this.babakList.forEach((babak, index) => {
             let sesiDiBabakIni = this.allSessions.filter(s => s.babak === babak);
             let isThisBabakDone = sesiDiBabakIni.every(s => s.isSelesai);
-            let isLocked = !isPreviousBabakDone && this.role !== 'VIEWER';
+            // ADMIN dan OPERATOR bisa bypass lock, VIEWER tidak bisa
+            let isLocked = !isPreviousBabakDone && this.role === 'VIEWER';
             let activeClass = (this.activeBabakIndex === index) ? 'bg-blue-600 text-white' : 'bg-slate-800 text-slate-400 hover:bg-slate-700';
             
             tabsHtml += `<button onclick="app.switchBabak(${index}, ${isLocked})" class="px-6 py-3 rounded-t-2xl font-bold text-xs transition uppercase tracking-widest ${activeClass}">
@@ -88,7 +91,7 @@ const app = {
         let sesiToRender = this.allSessions.filter(s => s.babak === this.babakList[this.activeBabakIndex]);
         
         sesiToRender.forEach(s => {
-            let statusBadge = s.isSelesai ? `<span class="text-[9px] font-black text-red-100 bg-red-600 px-2 py-0.5 rounded-md ml-2">DONE</span>` : '';
+            let statusBadge = s.isSelesai ? `<span class="text-[9px] font-black text-red-100 bg-red-600 px-2 py-0.5 rounded-md ml-2 shadow-lg shadow-red-500/50">DONE</span>` : '';
             let border = s.isSelesai ? 'border-slate-700 opacity-60' : 'border-blue-500';
 
             html += `
@@ -106,9 +109,7 @@ const app = {
 
     switchBabak(index, isLocked) {
         if(isLocked) {
-            if(confirm("Babak sebelumnya belum selesai semua. Buka paksa babak ini?")) {
-                this.activeBabakIndex = index; this.renderDashboard();
-            }
+            alert("Babak sebelumnya belum selesai semua. Anda login sebagai VIEWER.");
         } else { this.activeBabakIndex = index; this.renderDashboard(); }
     },
 
@@ -156,6 +157,9 @@ const app = {
         document.getElementById('sc-judul').innerText = this.sesi.nama;
         document.getElementById('sc-babak').innerText = this.sesi.babak;
 
+        // Reset timer ke 0 setiap buka sesi
+        this.setTimer(0);
+
         if(this.role === 'VIEWER') {
             document.getElementById('timer-controls').classList.add('hidden');
             document.getElementById('admin-controls').classList.add('hidden');
@@ -192,10 +196,10 @@ const app = {
                     <div id="score-${i}" class="text-6xl font-black text-white tracking-tighter">${this.scores[i]}</div>
                 </div>
 
-                ${this.role === 'ADMIN' && !this.isLocked ? `
+                ${this.role !== 'VIEWER' && !this.isLocked ? `
                 <div class="grid grid-cols-2 gap-2">
-                    <button onclick="app.updateScore(${i}, 100)" class="bg-green-600 hover:bg-green-500 py-3 rounded-xl font-black text-sm">+100</button>
-                    <button onclick="app.updateScore(${i}, -100)" class="bg-red-600 hover:bg-red-500 py-3 rounded-xl font-black text-sm">-100</button>
+                    <button onclick="app.updateScore(${i}, 100)" class="bg-green-600 hover:bg-green-500 py-3 rounded-xl font-black text-sm shadow-lg shadow-green-500/20">+100</button>
+                    <button onclick="app.updateScore(${i}, -100)" class="bg-red-600 hover:bg-red-500 py-3 rounded-xl font-black text-sm shadow-lg shadow-red-500/20">-100</button>
                     <button onclick="app.updateScore(${i}, 50)" class="bg-green-900/50 hover:bg-green-800 py-2 rounded-xl font-bold text-xs">+50</button>
                     <button onclick="app.updateScore(${i}, -50)" class="bg-red-900/50 hover:bg-red-800 py-2 rounded-xl font-bold text-xs">-50</button>
                 </div>` : ''}
@@ -209,7 +213,7 @@ const app = {
         const regu = ['A','B','C','D','E','F'][idx];
         this.historyActions.push({idx, val});
         this.scores[idx] += val;
-        this.addHistory(`Regu ${regu}: ${val > 0 ? '+' : ''}${val} poin`);
+        this.addHistory(`Regu ${regu}: ${val > 0 ? '+' : ''}${val} Poin`);
         this.renderGrid();
         this.pushCloud();
     },
@@ -223,23 +227,42 @@ const app = {
         this.pushCloud();
     },
 
-    startTimer(sec) {
-        clearInterval(this.timer);
-        let current = sec;
+    // --- LOGIKA TIMER BARU ---
+    setTimer(sec) {
+        let s = parseInt(sec);
+        if(isNaN(s) || s < 0) return;
+        this.stopTimer(); // Hentikan timer lama jika sedang jalan
+        this.timerValue = s;
+        this.updateTimerDisplay();
+    },
+
+    updateTimerDisplay() {
         const display = document.getElementById('time');
         display.classList.remove('text-red-500');
-        display.innerText = current.toString().padStart(2, '0');
-        
-        this.timer = setInterval(() => {
-            current--;
-            display.innerText = current.toString().padStart(2, '0');
-            if(current <= 3) display.classList.add('text-red-500');
-            if(current <= 0) { clearInterval(this.timer); alert('WAKTU HABIS!'); }
+        display.innerText = this.timerValue.toString().padStart(2, '0');
+        if(this.timerValue <= 3 && this.timerValue > 0) display.classList.add('text-red-500');
+    },
+
+    startTimer() {
+        if(this.timerValue <= 0) return;
+        this.stopTimer(); // Mencegah double interval
+        this.timerInterval = setInterval(() => {
+            this.timerValue--;
+            this.updateTimerDisplay();
+            if(this.timerValue <= 0) {
+                this.stopTimer();
+                alert('WAKTU HABIS!');
+            }
         }, 1000);
     },
 
+    stopTimer() {
+        clearInterval(this.timerInterval);
+    },
+    // --------------------------
+
     addHistory(txt) {
-        const now = new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+        const now = new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit', second:'2-digit'});
         this.historyText.unshift(`[${now}] ${txt}`);
         this.renderHistory();
     },
@@ -251,7 +274,9 @@ const app = {
     async pushCloud() {
         const data = { scores: this.scores, historyText: this.historyText, isLocked: this.isLocked };
         localStorage.setItem(`lcc_v4_${this.sesi.id}`, JSON.stringify(data));
-        if(this.role === 'ADMIN') {
+        
+        // PERBAIKAN: Selama bukan VIEWER (Berarti ADMIN atau OPERATOR), bisa nyimpen ke Excel
+        if(this.role !== 'VIEWER') {
             fetch(API_URL, { method:'POST', body: JSON.stringify({action:'pushScore', id: this.sesi.id, ...data})});
         }
     },
@@ -271,16 +296,16 @@ const app = {
     async lockSesi() {
         if(confirm("Akhiri sesi ini? Data akan dikunci dan dikirim ke Excel.")) {
             this.isLocked = true;
-            this.addHistory("SESI BERAKHIR & DIKUNCI");
+            this.addHistory("🔒 SESI TELAH DIAKHIRI DAN SKOR DIKUNCI OLEH OPERATOR.");
             await this.pushCloud();
             this.renderGrid();
         }
     },
 
     backToDashboard() {
-        if(this.timer) clearInterval(this.timer);
+        this.stopTimer();
         document.getElementById('view-scoring').classList.add('hidden');
         document.getElementById('view-dashboard').classList.remove('hidden');
-        this.loadSessions();
+        this.loadSessions(); // Load ulang agar memunculkan badge DONE
     }
 };
