@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Skoring LCC PAI</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 font-sans">
+    <audio id="tick" src="https://www.soundjay.com/buttons/beep-07a.mp3"></audio>
+    <audio id="siren" src="https://www.soundjay.com/buttons/beep-09.mp3"></audio>
+
+    <header class="bg-green-700 text-white p-4 flex justify-between items-center shadow-lg">
+        <h1 id="title" class="text-2xl font-bold text-yellow-300">LCC PAI 2025</h1>
+        <div id="babak-info" class="bg-green-900 px-4 py-1 rounded-full uppercase text-sm"></div>
+    </header>
+
+    <div class="p-6">
+        <div class="bg-slate-800 text-white p-4 rounded-xl mb-8 flex flex-col items-center">
+            <div id="timer-display" class="text-7xl font-mono font-bold text-red-500 mb-4">00</div>
+            <div class="flex gap-4">
+                <button onclick="setT(10)" class="bg-slate-600 px-3 py-1 rounded">10s</button>
+                <button onclick="setT(30)" class="bg-slate-600 px-3 py-1 rounded">30s</button>
+                <button onclick="startT()" class="bg-green-600 px-6 py-1 rounded font-bold">START</button>
+                <button onclick="stopT()" class="bg-red-600 px-6 py-1 rounded font-bold">STOP</button>
+            </div>
+        </div>
+
+        <div id="grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+    </div>
+
+    <script>
+        const API_URL = "https://script.google.com/macros/s/AKfycbwrUtuolAUV-PrWHxTlDho5S51Dr74AT0ld0gkcjEzthxzz9o1bXYRo9Xd9-bYzpthQPQ/exec";
+        let dataSesi = JSON.parse(localStorage.getItem('lcc_data'));
+
+        function init() {
+            document.getElementById('babak-info').innerText = dataSesi.sesi.babak;
+            render();
+        }
+
+        function render() {
+            let html = "";
+            dataSesi.sesi.teams.forEach((t, i) => {
+                html += `
+                <div class="bg-white p-6 rounded-2xl shadow-lg border-b-8 border-green-600">
+                    <div class="text-gray-400 font-bold">NO: ${t.no}</div>
+                    <div class="text-xl font-bold truncate">${t.nama}</div>
+                    <div class="text-xs italic mb-4">${t.kec}</div>
+                    <div id="sc-${i}" class="text-6xl font-black text-center text-green-700 mb-6">${dataSesi.sesi.scores[i]}</div>
+                    <div class="grid grid-cols-2 gap-2 text-xs">
+                        <button onclick="upd(${i}, 100)" class="bg-green-500 text-white p-2 rounded">+100 (WAJIB)</button>
+                        <button onclick="upd(${i}, 50)" class="bg-blue-500 text-white p-2 rounded">+50 (LEMPAR)</button>
+                        <button onclick="upd(${i}, -50)" class="bg-orange-500 text-white p-2 rounded">-50 (SALAH)</button>
+                        <button onclick="upd(${i}, -100)" class="bg-red-600 text-white p-2 rounded">-100 (REBUTAN)</button>
+                    </div>
+                </div>`;
+            });
+            document.getElementById('grid').innerHTML = html;
+        }
+
+        function upd(idx, pts) {
+            fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: "updateScore", index: idx, points: pts }) })
+            .then(res => res.json()).then(res => {
+                dataSesi.sesi.scores = res.newScores;
+                document.getElementById(`sc-${idx}`).innerText = res.newScores[idx];
+            });
+        }
+
+        // Timer Logic
+        let timer;
+        let timeLeft = 0;
+        function setT(s) { timeLeft = s; updateT(); }
+        function updateT() { document.getElementById('timer-display').innerText = timeLeft; }
+        function startT() {
+            clearInterval(timer);
+            timer = setInterval(() => {
+                if(timeLeft > 0) {
+                    timeLeft--; updateT();
+                    if(timeLeft <= 3) document.getElementById('tick').play();
+                } else {
+                    clearInterval(timer); document.getElementById('siren').play();
+                }
+            }, 1000);
+        }
+        function stopT() { clearInterval(timer); }
+
+        init();
+    </script>
+</body>
+</html>
