@@ -58,18 +58,26 @@
     </section>
 
     <section id="view-dashboard" class="hidden p-6 md:p-12 max-w-7xl mx-auto w-full">
-        <header class="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-4 border-b border-slate-700 pb-6">
-            <div>
-                <h2 class="text-4xl font-black text-white">PILIH <span class="text-blue-500">SESI LOMBA</span></h2>
-                <p class="text-slate-400">Jadwal bersumber dari Master Database Excel</p>
-            </div>
-            <div class="glass px-6 py-3 rounded-2xl border-blue-500/30 text-right">
+    <header class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4 border-b border-slate-700 pb-6">
+        <div>
+            <h2 class="text-4xl font-black text-white">PILIH <span class="text-blue-500">SESI LOMBA</span></h2>
+            <p class="text-slate-400">Jadwal bersumber dari Master Database Excel</p>
+        </div>
+        <div class="flex items-center gap-4">
+            <button onclick="app.loadSessions()" class="bg-slate-700 hover:bg-blue-600 px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2">
+                🔄 REFRESH DATA
+            </button>
+            <div class="glass px-6 py-2 rounded-xl border-blue-500/30 text-right">
                 <p id="info-user" class="text-sm font-bold text-blue-400"></p>
                 <p id="info-role" class="text-[10px] text-slate-500 uppercase tracking-widest"></p>
             </div>
-        </header>
-        <div id="session-list" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"></div>
-    </section>
+        </div>
+    </header>
+
+    <div id="babak-tabs" class="flex gap-2 mb-6 border-b border-slate-700 pb-2 overflow-x-auto"></div>
+
+    <div id="session-list" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+</section>
 
     <section id="view-scoring" class="hidden flex flex-col h-screen overflow-hidden">
         <header class="glass m-4 p-4 rounded-2xl flex justify-between items-center shadow-xl shrink-0 relative">
@@ -122,7 +130,28 @@
             <div id="history-log" class="h-20 overflow-y-auto space-y-1 pr-2 text-slate-300"></div>
         </footer>
     </section>
+<div id="modal-verify" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 transition-opacity">
+    <div class="glass p-8 rounded-3xl w-full max-w-lg shadow-2xl transform scale-100 border border-slate-600">
+        <h3 id="modal-title" class="text-2xl font-black text-white mb-1">Nama Sesi</h3>
+        <p id="modal-babak" class="text-sm font-bold text-blue-400 uppercase tracking-widest mb-6">Babak</p>
+        
+        <div class="bg-slate-800/80 rounded-xl p-4 mb-6 border border-slate-700 max-h-60 overflow-y-auto">
+            <table class="w-full text-left text-sm">
+                <thead><tr class="text-slate-500 border-b border-slate-700"><th class="pb-2">Regu</th><th class="pb-2">No</th><th class="pb-2">Sekolah</th></tr></thead>
+                <tbody id="modal-team-list" class="text-slate-300"></tbody>
+            </table>
+        </div>
 
+        <div class="bg-blue-900/30 border border-blue-500/30 p-3 rounded-lg mb-6 text-xs text-blue-200">
+            <strong>⚠️ INFO:</strong> Pastikan tim di atas sudah sesuai. Jika ada perubahan regu, silakan edit di Excel Master, lalu klik tombol Refresh di Dashboard.
+        </div>
+
+        <div class="flex gap-3">
+            <button onclick="document.getElementById('modal-verify').classList.add('hidden')" class="flex-1 bg-slate-700 hover:bg-slate-600 text-white font-bold py-3 rounded-xl transition">BATAL</button>
+            <button id="btn-start-sesi" class="flex-1 bg-green-600 hover:bg-green-500 text-white font-bold py-3 rounded-xl shadow-lg transition">MULAI SESI</button>
+        </div>
+    </div>
+</div>
     <script>
         // MASUKKAN LINK GOOGLE APPS SCRIPT ANDA DI SINI
 const API_URL = "https://script.google.com/macros/s/AKfycbwZ1Bcc1p-WcHfuNUSjtOTY7FvjRhBeLWWGj1IZoDqxMt0mmyCi22rIbHI4lRxvSQPIhA/exec"; 
@@ -151,25 +180,32 @@ const app = {
         } catch(e) { alert("Koneksi Error!"); btn.innerText = "MASUK SISTEM"; btn.disabled = false; }
     },
 
-    async loadSessions() {
-        const list = document.getElementById('session-list');
-        list.innerHTML = `<div class="col-span-full text-center p-10"><div class="animate-spin w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full mb-4 mx-auto"></div><p class="text-slate-500 font-bold">Memuat Data Excel...</p></div>`;
+ showModalSesi(encoded) {
+        const s = JSON.parse(decodeURIComponent(encoded));
+        document.getElementById('modal-title').innerText = s.nama;
+        document.getElementById('modal-babak').innerText = s.babak;
         
-        try {
-            const res = await (await fetch(API_URL, { method:'POST', body: JSON.stringify({action:'getSessions'})})).json();
-            let html = "";
-            res.sessions.forEach(s => {
-                html += `
-                <div onclick="app.openSesi('${encodeURIComponent(JSON.stringify(s))}')" class="glass p-8 rounded-3xl border-l-4 border-blue-500 cursor-pointer hover:bg-slate-800 transition-all hover:-translate-y-2 shadow-xl group">
-                    <span class="text-[10px] font-black text-blue-500 bg-blue-500/10 px-3 py-1 rounded-full">${s.babak}</span>
-                    <h3 class="text-2xl font-black mt-4 group-hover:text-yellow-400 transition">${s.nama}</h3>
-                    <p class="mt-4 text-slate-400 text-sm font-semibold">${s.teams.length} Peserta Terdaftar</p>
-                </div>`;
-            });
-            list.innerHTML = html;
-        } catch (e) { list.innerHTML = `<p class="text-red-500 col-span-full text-center">Gagal memuat sesi.</p>`; }
+        let teamHtml = "";
+        s.teams.forEach((t, i) => {
+            teamHtml += `<tr class="border-b border-slate-700/50">
+                <td class="py-2 font-bold text-blue-400">Regu ${['A','B','C','D','E','F'][i]}</td>
+                <td class="py-2">${t.no}</td>
+                <td class="py-2 font-semibold">${t.nama} <span class="text-xs text-slate-500 ml-1">(${t.kec})</span></td>
+            </tr>`;
+        });
+        document.getElementById('modal-team-list').innerHTML = teamHtml;
+        
+        // Setup tombol Mulai
+        const btnMulai = document.getElementById('btn-start-sesi');
+        btnMulai.onclick = () => {
+            document.getElementById('modal-verify').classList.add('hidden');
+            app.openSesi(encoded);
+        };
+
+        document.getElementById('modal-verify').classList.remove('hidden');
     },
 
+    // KESALAHAN TADI ADA DI SINI: Kurang baris async openSesi di bawah ini
     async openSesi(encoded) {
         this.sesi = JSON.parse(decodeURIComponent(encoded));
         
