@@ -11,7 +11,6 @@
         .glass { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.1); }
         .btn-grad { transition: 0.3s; background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); }
         .btn-grad:hover { transform: translateY(-2px); box-shadow: 0 10px 20px -10px #3b82f6; }
-        /* Perbaikan Scroll untuk banyak grup */
         #team-grid { scrollbar-width: thin; scrollbar-color: #334155 transparent; }
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
@@ -26,9 +25,12 @@
             </div>
             <h1 class="text-3xl font-extrabold mb-2 tracking-tight">LCC <span class="text-blue-500">DIGITAL</span></h1>
             <p class="text-slate-400 mb-8 text-sm">Silakan masuk untuk mengelola skor</p>
-            <input type="password" id="pass" placeholder="Password Panitia" class="w-full bg-slate-800 border border-slate-700 p-4 rounded-2xl mb-4 focus:ring-2 focus:ring-blue-500 outline-none text-center font-bold">
-            <button onclick="app.login()" class="w-full btn-grad py-4 rounded-2xl font-bold tracking-wide uppercase text-sm">Masuk Sistem</button>
-            <button onclick="app.role='VIEWER'; app.showDashboard()" class="w-full mt-3 text-slate-500 text-xs font-bold hover:text-slate-300 transition">MASUK SEBAGAI VIEWER (DISPLAY)</button>
+            
+            <input type="text" id="user" value="admin" disabled class="w-full bg-slate-800/50 border border-slate-700 p-4 rounded-t-2xl focus:outline-none text-center font-bold text-slate-500 cursor-not-allowed">
+            <input type="password" id="pass" placeholder="Password Panitia" class="w-full bg-slate-800 border border-slate-700 border-t-0 p-4 rounded-b-2xl mb-6 focus:ring-2 focus:ring-blue-500 outline-none text-center font-bold">
+            
+            <button id="btn-login" onclick="app.login()" class="w-full btn-grad py-4 rounded-2xl font-bold tracking-wide uppercase text-sm mb-3">Masuk Sistem</button>
+            <button onclick="app.role='VIEWER'; app.showDashboard()" class="w-full text-slate-500 text-xs font-bold hover:text-slate-300 transition">MASUK SEBAGAI VIEWER (DISPLAY)</button>
         </div>
     </section>
 
@@ -39,32 +41,27 @@
                 <p class="text-slate-400">Jadwal bersumber dari Master Database Excel</p>
             </div>
             <div class="flex items-center gap-4">
-                <button onclick="app.loadSessions()" class="bg-slate-700 hover:bg-blue-600 px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2">
-                    🔄 REFRESH DATA
-                </button>
+                <button onclick="app.loadSessions()" class="bg-slate-700 hover:bg-blue-600 px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2">🔄 REFRESH DATA</button>
                 <div class="glass px-6 py-2 rounded-xl border-blue-500/30 text-right">
                     <p id="info-user" class="text-sm font-bold text-blue-400"></p>
                     <p id="info-role" class="text-[10px] text-slate-500 uppercase tracking-widest"></p>
                 </div>
             </div>
         </header>
-
         <div id="babak-tabs" class="flex gap-2 mb-6 border-b border-slate-700 pb-2 overflow-x-auto"></div>
-
         <div id="session-list" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"></div>
     </section>
 
     <section id="view-scoring" class="hidden h-screen flex flex-col">
         <nav class="p-4 glass flex justify-between items-center px-8">
             <div class="flex items-center gap-4">
-                <button onclick="app.backToDashboard()" class="text-slate-400 hover:text-white">✕ Keluar</button>
+                <button onclick="app.backToDashboard()" class="text-slate-400 hover:text-white font-bold">← Kembali</button>
                 <div class="h-8 w-[1px] bg-slate-700"></div>
                 <div>
-                    <h4 id="sc-judul" class="font-black text-lg leading-none">Sesi 1</h4>
-                    <span id="sc-babak" class="text-[10px] text-blue-400 font-bold uppercase tracking-widest">Penyisihan</span>
+                    <h4 id="sc-judul" class="font-black text-lg leading-none">Sesi Lomba</h4>
+                    <span id="sc-babak" class="text-[10px] text-blue-400 font-bold uppercase tracking-widest">Babak</span>
                 </div>
             </div>
-
             <div id="timer-display" class="bg-black/40 px-8 py-2 rounded-2xl border border-white/10 flex items-center gap-4">
                 <span id="time" class="text-3xl font-mono font-black text-yellow-400">00</span>
                 <div id="timer-controls" class="flex gap-2">
@@ -72,17 +69,13 @@
                     <button onclick="app.startTimer(5)" class="bg-slate-700 hover:bg-slate-600 w-8 h-8 rounded-lg text-xs font-bold">5s</button>
                 </div>
             </div>
-
             <div id="admin-controls" class="flex gap-3">
                 <button onclick="app.undo()" class="bg-slate-800 hover:bg-slate-700 px-4 py-2 rounded-xl text-xs font-bold transition">UNDO</button>
                 <button onclick="app.lockSesi()" class="bg-red-600 hover:bg-red-500 px-4 py-2 rounded-xl text-xs font-bold transition">AKHIRI SESI</button>
             </div>
         </nav>
-
         <main class="flex-1 flex overflow-hidden">
-            <div id="team-grid" class="flex-1 p-6 grid gap-4 overflow-y-auto content-start">
-                </div>
-
+            <div id="team-grid" class="flex-1 p-6 grid gap-4 overflow-y-auto content-start"></div>
             <aside class="w-80 glass border-l border-white/10 p-6 hidden lg:flex flex-col">
                 <h5 class="text-xs font-black text-slate-500 uppercase mb-4 tracking-widest">Log Aktivitas</h5>
                 <div id="history-log" class="flex-1 space-y-3 overflow-y-auto text-[11px]"></div>
@@ -90,301 +83,23 @@
         </main>
     </section>
 
-    <div id="modal-verify" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 transition-opacity">
-        <div class="glass p-8 rounded-[32px] w-full max-w-lg shadow-2xl border border-slate-600">
+    <div id="modal-verify" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="glass p-8 rounded-[32px] w-full max-w-lg border border-slate-600">
             <h3 id="modal-title" class="text-2xl font-black text-white mb-1">Nama Sesi</h3>
             <p id="modal-babak" class="text-sm font-bold text-blue-400 uppercase tracking-widest mb-6">Babak</p>
-            
-            <div class="bg-slate-800/80 rounded-2xl p-4 mb-6 border border-slate-700 max-h-60 overflow-y-auto">
+            <div class="bg-slate-800/80 rounded-2xl p-4 mb-6 max-h-60 overflow-y-auto">
                 <table class="w-full text-left text-sm">
                     <thead><tr class="text-slate-500 border-b border-slate-700"><th class="pb-2">Regu</th><th class="pb-2">No</th><th class="pb-2">Sekolah</th></tr></thead>
                     <tbody id="modal-team-list" class="text-slate-300"></tbody>
                 </table>
             </div>
-
-            <div class="bg-blue-900/30 border border-blue-500/30 p-4 rounded-xl mb-6 text-[11px] text-blue-200">
-                <strong>⚠️ VERIFIKASI:</strong> Pastikan tim di atas sudah sesuai dengan regu di lapangan. Gunakan tombol Refresh di dashboard jika ada perubahan data Excel.
-            </div>
-
             <div class="flex gap-3">
-                <button onclick="document.getElementById('modal-verify').classList.add('hidden')" class="flex-1 bg-slate-700 hover:bg-slate-600 text-white font-bold py-4 rounded-2xl transition">BATAL</button>
-                <button id="btn-start-sesi" class="flex-1 bg-green-600 hover:bg-green-500 text-white font-bold py-4 rounded-2xl shadow-lg shadow-green-500/20 transition uppercase tracking-wider">Mulai Sesi</button>
+                <button onclick="document.getElementById('modal-verify').classList.add('hidden')" class="flex-1 bg-slate-700 hover:bg-slate-600 font-bold py-4 rounded-2xl">BATAL</button>
+                <button id="btn-start-sesi" class="flex-1 bg-green-600 hover:bg-green-500 font-bold py-4 rounded-2xl">MULAI SESI</button>
             </div>
         </div>
     </div>
 
-    <script>
-        // GANTI DENGAN URL DEPLOY WEB APP ANDA
-        const API_URL = "https://script.google.com/macros/s/AKfycbzMTcjr2-y7i_T6AccfIdfGjPYjB0I_7waWa6Xh_8pb8iGe4DozRlz9VZUdOL5D-6Akkg/exec";
-
-        const app = {
-            role: '',
-            user: '',
-            allSessions: [],
-            babakList: [],
-            activeBabakIndex: 0,
-            sesi: null,
-            scores: [],
-            historyText: [],
-            historyActions: [],
-            isLocked: false,
-            timer: null,
-
-            login() {
-                const pass = document.getElementById('pass').value;
-                if(pass === '123') { // Ganti password sesuai keinginan
-                    this.role = 'ADMIN';
-                    this.user = 'Operator Utama';
-                    this.showDashboard();
-                } else { alert('Password Salah!'); }
-            },
-
-            showDashboard() {
-                document.getElementById('view-login').classList.add('hidden');
-                document.getElementById('view-dashboard').classList.remove('hidden');
-                document.getElementById('info-user').innerText = this.user || 'Guest Viewer';
-                document.getElementById('info-role').innerText = this.role;
-                this.loadSessions();
-            },
-
-            async loadSessions() {
-                const list = document.getElementById('session-list');
-                list.innerHTML = `<div class="col-span-full text-center p-10"><div class="animate-spin w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full mb-4 mx-auto"></div><p class="text-slate-500 font-bold italic">Menghubungkan ke Excel...</p></div>`;
-                
-                try {
-                    const res = await (await fetch(API_URL, { method:'POST', body: JSON.stringify({action:'getSessions'})})).json();
-                    this.allSessions = res.sessions;
-                    this.babakList = [...new Set(res.sessions.map(s => s.babak))];
-                    this.renderDashboard();
-                } catch (e) { 
-                    list.innerHTML = `<p class="text-red-500 col-span-full text-center">Gagal memuat sesi. Pastikan API_URL sudah benar.</p>`; 
-                }
-            },
-
-            renderDashboard() {
-                // 1. Render Tabs
-                let tabsHtml = "";
-                let isPreviousBabakDone = true;
-
-                this.babakList.forEach((babak, index) => {
-                    let sesiDiBabakIni = this.allSessions.filter(s => s.babak === babak);
-                    let isThisBabakDone = sesiDiBabakIni.every(s => s.isSelesai);
-                    let isLocked = !isPreviousBabakDone && this.role !== 'VIEWER';
-                    let activeClass = (this.activeBabakIndex === index) ? 'bg-blue-600 text-white' : 'bg-slate-800 text-slate-400 hover:bg-slate-700';
-                    
-                    tabsHtml += `<button onclick="app.switchBabak(${index}, ${isLocked})" class="px-6 py-3 rounded-t-2xl font-bold text-xs transition uppercase tracking-widest ${activeClass}">
-                        ${isLocked ? '🔒 ' : ''}${babak}
-                    </button>`;
-                    isPreviousBabakDone = isThisBabakDone;
-                });
-                document.getElementById('babak-tabs').innerHTML = tabsHtml;
-
-                // 2. Render Cards
-                let html = "";
-                let sesiToRender = this.allSessions.filter(s => s.babak === this.babakList[this.activeBabakIndex]);
-                
-                sesiToRender.forEach(s => {
-                    let statusBadge = s.isSelesai ? `<span class="text-[9px] font-black text-red-100 bg-red-600 px-2 py-0.5 rounded-md ml-2">DONE</span>` : '';
-                    let border = s.isSelesai ? 'border-slate-700 opacity-60' : 'border-blue-500';
-
-                    html += `
-                    <div onclick="app.showModalSesi('${encodeURIComponent(JSON.stringify(s))}')" class="glass p-6 rounded-[32px] border-l-4 ${border} cursor-pointer hover:bg-slate-800 transition-all hover:-translate-y-1 shadow-xl group">
-                        <div class="flex justify-between items-start">
-                            <span class="text-[10px] font-bold text-blue-400 bg-blue-900/30 px-3 py-1 rounded-full uppercase">${s.babak}</span>
-                            ${statusBadge}
-                        </div>
-                        <h3 class="text-xl font-black mt-4 group-hover:text-blue-400 transition">${s.nama}</h3>
-                        <p class="mt-2 text-slate-500 text-xs font-bold">${s.teams.length} Grup Terdaftar</p>
-                    </div>`;
-                });
-                document.getElementById('session-list').innerHTML = html || `<p class="col-span-full text-center text-slate-500 py-10">Tidak ada sesi di babak ini.</p>`;
-            },
-
-            switchBabak(index, isLocked) {
-                if(isLocked) {
-                    if(confirm("Babak sebelumnya belum selesai semua. Buka paksa?")) {
-                        this.activeBabakIndex = index; this.renderDashboard();
-                    }
-                } else { this.activeBabakIndex = index; this.renderDashboard(); }
-            },
-
-            showModalSesi(encoded) {
-                const s = JSON.parse(decodeURIComponent(encoded));
-                document.getElementById('modal-title').innerText = s.nama;
-                document.getElementById('modal-babak').innerText = s.babak;
-                
-                let teamHtml = "";
-                s.teams.forEach((t, i) => {
-                    teamHtml += `<tr class="border-b border-slate-700/50 text-xs">
-                        <td class="py-3 font-bold text-blue-400">Regu ${['A','B','C','D','E','F'][i]}</td>
-                        <td class="py-3">${t.no}</td>
-                        <td class="py-3 font-bold">${t.nama} <br><span class="text-[10px] text-slate-500 font-normal">Kec. ${t.kec}</span></td>
-                    </tr>`;
-                });
-                document.getElementById('modal-team-list').innerHTML = teamHtml;
-                
-                const btnMulai = document.getElementById('btn-start-sesi');
-                btnMulai.onclick = () => {
-                    document.getElementById('modal-verify').classList.add('hidden');
-                    app.openSesi(encoded);
-                };
-                document.getElementById('modal-verify').classList.remove('hidden');
-            },
-
-            async openSesi(encoded) {
-                this.sesi = JSON.parse(decodeURIComponent(encoded));
-                
-                // Resmue Data
-                const localData = localStorage.getItem(`lcc_v4_${this.sesi.id}`);
-                if(localData) {
-                    const d = JSON.parse(localData);
-                    this.scores = d.scores || new Array(this.sesi.teams.length).fill(0);
-                    this.historyText = d.historyText || ["Sesi dilanjutkan..."];
-                    this.historyActions = d.historyActions || [];
-                    this.isLocked = d.isLocked || false;
-                } else {
-                    this.scores = new Array(this.sesi.teams.length).fill(0);
-                    this.historyText = ["Sesi siap dimulai."];
-                    this.historyActions = []; this.isLocked = false;
-                }
-                
-                document.getElementById('view-dashboard').classList.add('hidden');
-                document.getElementById('view-scoring').classList.remove('hidden');
-                document.getElementById('sc-judul').innerText = this.sesi.nama;
-                document.getElementById('sc-babak').innerText = this.sesi.babak;
-
-                if(this.role === 'VIEWER') {
-                    document.getElementById('timer-controls').classList.add('hidden');
-                    document.getElementById('admin-controls').classList.add('hidden');
-                }
-
-                this.renderGrid();
-                this.renderHistory();
-                await this.pullCloud();
-
-                if (this.role === 'VIEWER') {
-                    setInterval(() => this.pullCloud(), 3000);
-                }
-            },
-
-            renderGrid() {
-                const grid = document.getElementById('team-grid');
-                // Trik: Jika 5-6 grup, gunakan grid-cols-3 agar muat di layar
-                const cols = this.sesi.teams.length > 4 ? 'md:grid-cols-3' : 'md:grid-cols-2';
-                grid.className = `flex-1 p-6 grid grid-cols-1 ${cols} gap-4 overflow-y-auto content-start`;
-
-                let html = "";
-                this.sesi.teams.forEach((t, i) => {
-                    const regu = ['A','B','C','D','E','F'][i];
-                    const color = ['blue','yellow','green','red','purple','pink'][i];
-                    
-                    html += `
-                    <div class="glass p-6 rounded-[32px] border-b-4 border-${color}-500 flex flex-col justify-between shadow-xl">
-                        <div class="flex justify-between items-start">
-                            <span class="bg-${color}-600 text-white text-[10px] font-black px-3 py-1 rounded-full">REGU ${regu}</span>
-                            <span class="text-slate-500 font-bold text-[10px]">${t.no}</span>
-                        </div>
-                        <h4 class="text-lg font-black mt-3 leading-tight h-12 overflow-hidden">${t.nama}</h4>
-                        
-                        <div class="my-6 text-center">
-                            <div id="score-${i}" class="text-6xl font-black text-white tracking-tighter">${this.scores[i]}</div>
-                        </div>
-
-                        ${this.role === 'ADMIN' && !this.isLocked ? `
-                        <div class="grid grid-cols-2 gap-2">
-                            <button onclick="app.updateScore(${i}, 100)" class="bg-green-600 hover:bg-green-500 py-3 rounded-xl font-black text-sm">+100</button>
-                            <button onclick="app.updateScore(${i}, -100)" class="bg-red-600 hover:bg-red-500 py-3 rounded-xl font-black text-sm">-100</button>
-                            <button onclick="app.updateScore(${i}, 50)" class="bg-green-900/50 hover:bg-green-800 py-2 rounded-xl font-bold text-xs">+50</button>
-                            <button onclick="app.updateScore(${i}, -50)" class="bg-red-900/50 hover:bg-red-800 py-2 rounded-xl font-bold text-xs">-50</button>
-                        </div>` : ''}
-                    </div>`;
-                });
-                grid.innerHTML = html;
-            },
-
-            updateScore(idx, val) {
-                if(this.isLocked) return;
-                const regu = ['A','B','C','D','E','F'][idx];
-                this.historyActions.push({idx, val});
-                this.scores[idx] += val;
-                this.addHistory(`Regu ${regu}: ${val > 0 ? '+' : ''}${val} poin`);
-                this.renderGrid();
-                this.pushCloud();
-            },
-
-            undo() {
-                if(this.historyActions.length === 0 || this.isLocked) return;
-                const last = this.historyActions.pop();
-                this.scores[last.idx] -= last.val;
-                this.addHistory(`Undo: Nilai Regu ${['A','B','C','D','E','F'][last.idx]} dikembalikan`);
-                this.renderGrid();
-                this.pushCloud();
-            },
-
-            startTimer(sec) {
-                clearInterval(this.timer);
-                let current = sec;
-                const display = document.getElementById('time');
-                display.classList.remove('text-red-500');
-                display.innerText = current.toString().padStart(2, '0');
-                
-                this.timer = setInterval(() => {
-                    current--;
-                    display.innerText = current.toString().padStart(2, '0');
-                    if(current <= 3) display.classList.add('text-red-500');
-                    if(current <= 0) { clearInterval(this.timer); alert('WAKTU HABIS!'); }
-                }, 1000);
-            },
-
-            addHistory(txt) {
-                const now = new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
-                this.historyText.unshift(`[${now}] ${txt}`);
-                this.renderHistory();
-            },
-
-            renderHistory() {
-                document.getElementById('history-log').innerHTML = this.historyText.map(t => `<div class="bg-slate-800/50 p-2 rounded-lg border-l-2 border-blue-500">${t}</div>`).join('');
-            },
-
-            async pushCloud() {
-                const data = { scores: this.scores, historyText: this.historyText, isLocked: this.isLocked };
-                localStorage.setItem(`lcc_v4_${this.sesi.id}`, JSON.stringify(data));
-                if(this.role === 'ADMIN') {
-                    fetch(API_URL, { method:'POST', body: JSON.stringify({action:'pushScore', id: this.sesi.id, ...data})});
-                }
-            },
-
-            async pullCloud() {
-                try {
-                    const res = await (await fetch(API_URL, { method:'POST', body: JSON.stringify({action:'getScore', id: this.sesi.id})})).json();
-                    if(res.data) {
-                        this.scores = res.data.scores;
-                        this.historyText = res.data.historyText;
-                        this.isLocked = res.data.isLocked;
-                        this.renderGrid(); this.renderHistory();
-                    }
-                } catch(e) {}
-            },
-
-            async lockSesi() {
-                if(confirm("Akhiri sesi ini? Data akan dikunci dan dikirim ke Rekap Utama.")) {
-                    this.isLocked = true;
-                    this.addHistory("SESI BERAKHIR & DIKUNCI");
-                    await this.pushCloud();
-                    this.renderGrid();
-                }
-            },
-
-            backToDashboard() {
-                if(this.timer) clearInterval(this.timer);
-                document.getElementById('view-scoring').classList.add('hidden');
-                document.getElementById('view-dashboard').classList.remove('hidden');
-                this.loadSessions();
-            }
-        };
-
-        // Inisialisasi awal jika ada sesi tersimpan
-        window.onload = () => { console.log("System Ready"); };
-    </script>
+    <script src="app.js"></script>
 </body>
 </html>
