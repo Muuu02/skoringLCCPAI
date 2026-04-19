@@ -12,7 +12,7 @@
         <button onclick="login()" class="w-full bg-green-600 text-white p-2 rounded font-bold">MASUK</button>
     </div>
     <script>
-        const API_URL = "URL_WEB_APP_GAS_ANDA_DISINI";
+        const API_URL = "https://script.google.com/macros/s/AKfycbwrUtuolAUV-PrWHxTlDho5S51Dr74AT0ld0gkcjEzthxzz9o1bXYRo9Xd9-bYzpthQPQ/exec";
         function login() {
             const payload = { action: "login", username: id('user').value, password: id('pass').value };
             fetch(API_URL, { method: 'POST', body: JSON.stringify(payload) })
