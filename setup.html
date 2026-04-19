@@ -1,44 +1,98 @@
 <!DOCTYPE html>
-<html>
+<html lang="id">
 <head>
-    <title>Setup Tim - LCC PAI</title>
+    <title>Pengaturan Lomba - LCC PAI</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-slate-50 p-8">
-    <div class="max-w-4xl mx-auto bg-white p-6 rounded-xl shadow">
-        <h2 class="text-xl font-bold mb-4">Pengaturan Sesi (Maks 6 Tim)</h2>
-        <input type="text" id="babak" placeholder="Nama Babak (Penyisihan/Final)" class="w-full p-2 border mb-4">
-        <table class="w-full mb-6">
-            <thead><tr class="bg-gray-200"><th>No. Peserta</th><th>Sekolah</th><th>Kecamatan</th></tr></thead>
+<body class="bg-slate-100 p-8">
+    <div class="max-w-4xl mx-auto bg-white p-8 rounded-xl shadow-lg border-t-4 border-blue-600">
+        <h2 class="text-2xl font-bold mb-6 text-center text-blue-800">PENGATURAN SKEMA LOMBA</h2>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6 bg-blue-50 p-4 rounded-lg border border-blue-100">
+            <div>
+                <label class="block font-bold text-sm mb-1 text-gray-700">1. Nama Kegiatan</label>
+                <input type="text" id="giat" placeholder="Contoh: Pentas PAI SD Kota Bandung" class="w-full p-2 border rounded focus:ring-blue-500 focus:border-blue-500">
+            </div>
+            <div>
+                <label class="block font-bold text-sm mb-1 text-gray-700">2. Babak</label>
+                <select id="babak" class="w-full p-2 border rounded focus:ring-blue-500 focus:border-blue-500">
+                    <option value="Penyisihan">Penyisihan</option>
+                    <option value="Semi Final">Semi Final</option>
+                    <option value="Final">Final</option>
+                </select>
+            </div>
+            <div>
+                <label class="block font-bold text-sm mb-1 text-gray-700">3. Pilih Sesi / Ruang</label>
+                <input type="text" id="sesi" placeholder="Contoh: Sesi 1 (Ruang A)" class="w-full p-2 border rounded focus:ring-blue-500">
+            </div>
+            <div>
+                <label class="block font-bold text-sm mb-1 text-gray-700">4. Skema Kelolosan</label>
+                <input type="text" id="skema" placeholder="Contoh: 1 Tim Terbaik Lanjut Semi Final" class="w-full p-2 border rounded focus:ring-blue-500">
+            </div>
+        </div>
+
+        <h3 class="font-bold text-lg mb-2">5. Data Tim yang Bertanding</h3>
+        <table class="w-full mb-6 text-sm">
+            <thead>
+                <tr class="bg-gray-200 text-gray-700"><th class="p-2 border">No. Peserta</th><th class="p-2 border">Nama Sekolah</th><th class="p-2 border">Kecamatan</th></tr>
+            </thead>
             <tbody id="team-inputs"></tbody>
         </table>
-        <button onclick="save()" class="bg-blue-600 text-white px-6 py-2 rounded">SIMPAN & MULAI</button>
+
+        <button onclick="save()" id="btn-save" class="w-full bg-blue-600 text-white font-bold px-6 py-3 rounded-lg hover:bg-blue-700 transition">SIMPAN SKEMA & MULAI SKORING</button>
     </div>
+
     <script>
-        const API_URL = "https://script.google.com/macros/s/AKfycbwrUtuolAUV-PrWHxTlDho5S51Dr74AT0ld0gkcjEzthxzz9o1bXYRo9Xd9-bYzpthQPQ/exec";
+        const API_URL = "URL_WEB_APP_GAS_ANDA_DISINI"; // PASTE LINK GAS DI SINI
+        
+        // Generate 6 baris form tim
         let html = "";
         for(let i=1; i<=6; i++) {
             html += `<tr>
-                <td><input id="no-${i}" class="border p-1 w-full" placeholder="0${i}"></td>
-                <td><input id="sch-${i}" class="border p-1 w-full" placeholder="Sekolah ${i}"></td>
-                <td><input id="kec-${i}" class="border p-1 w-full" placeholder="Kecamatan"></td>
+                <td class="border"><input id="no-${i}" class="p-2 w-full outline-none" placeholder="0${i}"></td>
+                <td class="border"><input id="sch-${i}" class="p-2 w-full outline-none" placeholder="Nama Sekolah Tim ${i}..."></td>
+                <td class="border"><input id="kec-${i}" class="p-2 w-full outline-none" placeholder="Kecamatan..."></td>
             </tr>`;
         }
         document.getElementById('team-inputs').innerHTML = html;
 
         function save() {
+            const btn = document.getElementById('btn-save');
+            btn.innerText = "MENYIMPAN..."; btn.disabled = true;
+
+            const metadata = {
+                giat: document.getElementById('giat').value || "Lomba Cerdas Cermat",
+                babak: document.getElementById('babak').value,
+                sesi: document.getElementById('sesi').value || "Sesi -",
+                skema: document.getElementById('skema').value || "-"
+            };
+
             let teams = [];
             for(let i=1; i<=6; i++) {
                 if(document.getElementById(`sch-${i}`).value) {
                     teams.push({
-                        no: document.getElementById(`no-${i}`).value,
+                        no: document.getElementById(`no-${i}`).value || i,
                         nama: document.getElementById(`sch-${i}`).value,
-                        kec: document.getElementById(`kec-${i}`).value
+                        kec: document.getElementById(`kec-${i}`).value || "-"
                     });
                 }
             }
-            fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: "saveSetup", babak: document.getElementById('babak').value, teams: teams }) })
-            .then(() => window.location.href = "scoring.html");
+
+            const payload = { action: "saveSetup", metadata: metadata, teams: teams };
+
+            fetch(API_URL, { method: 'POST', body: JSON.stringify(payload) })
+            .then(res => res.json())
+            .then(res => {
+                if(res.success) {
+                    // Simpan sementara di browser untuk passing ke skoring
+                    const newData = { sesi: { metadata: metadata, teams: teams, scores: teams.map(()=>0) }};
+                    localStorage.setItem('lcc_data', JSON.stringify(newData));
+                    window.location.href = "scoring.html";
+                }
+            }).catch(err => {
+                alert("Terjadi kesalahan. Pastikan link API benar.");
+                btn.innerText = "SIMPAN SKEMA & MULAI SKORING"; btn.disabled = false;
+            });
         }
     </script>
 </body>
