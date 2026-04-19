@@ -24,12 +24,18 @@
         <div class="max-w-2xl mx-auto bg-slate-800 text-white p-4 rounded-xl mb-8 flex flex-col items-center shadow-xl">
             <div class="text-gray-400 text-sm font-bold mb-1">TIMER WAKTU</div>
             <div id="timer-display" class="text-7xl font-mono font-bold text-red-500 mb-4">00</div>
-            <div class="flex gap-4">
-                <button onclick="setT(10)" class="bg-slate-600 hover:bg-slate-500 px-4 py-2 rounded font-bold">10 Detik</button>
-                <button onclick="setT(30)" class="bg-slate-600 hover:bg-slate-500 px-4 py-2 rounded font-bold">30 Detik</button>
-                <button onclick="startT()" class="bg-green-600 hover:bg-green-500 px-6 py-2 rounded font-bold">MULAI</button>
-                <button onclick="stopT()" class="bg-red-600 hover:bg-red-500 px-6 py-2 rounded font-bold">STOP/RESET</button>
-            </div>
+            <div class="flex flex-wrap justify-center gap-3 mb-4">
+    <button onclick="setT(10)" class="bg-slate-600 hover:bg-slate-500 px-4 py-2 rounded font-bold">10s</button>
+    <button onclick="setT(30)" class="bg-slate-600 hover:bg-slate-500 px-4 py-2 rounded font-bold">30s</button>
+    <div class="flex items-center bg-slate-700 rounded p-1">
+        <input type="number" id="manual-sec" placeholder="Detik" class="w-16 p-1 text-black text-center font-bold rounded-l outline-none">
+        <button onclick="setManualT()" class="bg-blue-600 hover:bg-blue-500 px-3 py-1.5 rounded-r font-bold">SET</button>
+    </div>
+</div>
+<div class="flex gap-4">
+    <button onclick="startT()" class="bg-green-600 hover:bg-green-500 px-8 py-2 rounded font-bold text-xl">MULAI</button>
+    <button onclick="stopT()" class="bg-red-600 hover:bg-red-500 px-8 py-2 rounded font-bold text-xl">STOP/RESET</button>
+</div>
         </div>
 
         <div id="grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
