@@ -59,7 +59,6 @@ const app = {
     },
 
     renderDashboard() {
-        // Logika Pintar: Ambil Babak yang tersedia saja dan urutkan
         const availableBabaks = [...new Set(this.allSessions.map(s => s.babak.toUpperCase()))];
         const order = ["PENYISIHAN", "SEMIFINAL", "FINAL"];
         availableBabaks.sort((a, b) => {
@@ -118,31 +117,16 @@ const app = {
         let tHtml = "";
         s.teams.forEach((t) => { 
             let infoSkor = "";
-            
-            // JIKA SESI SUDAH SELESAI, TAMPILKAN SKOR DAN STATUS JUARA DI PINGGIR
             if (s.isSelesai && t.skor !== undefined) {
-                // Beri warna kuning khusus untuk Juara 1
                 let warnaJuara = t.peringkat === 1 ? "text-yellow-400" : "text-slate-400";
-                infoSkor = `
-                <td class="py-2 text-right">
-                    <span class="text-xl font-black text-white block">${t.skor}</span>
-                    <span class="text-[10px] font-bold ${warnaJuara} uppercase tracking-widest block">Juara ${t.peringkat}</span>
-                </td>`;
-            } else {
-                infoSkor = `<td class="py-2 text-right"></td>`; // Kosong jika belum mulai
-            }
+                infoSkor = `<td class="py-2 text-right"><span class="text-xl font-black text-white block">${t.skor}</span><span class="text-[10px] font-bold ${warnaJuara} uppercase tracking-widest block">Juara ${t.peringkat}</span></td>`;
+            } else { infoSkor = `<td class="py-2 text-right"></td>`; }
 
-            tHtml += `
-            <tr class="border-b border-slate-700/50">
-                <td class="py-3 font-bold text-blue-400 text-xs w-20">REGU ${t.no}</td>
-                <td class="py-3 font-bold text-white text-sm">${t.nama}</td>
-                ${infoSkor}
-            </tr>`; 
+            tHtml += `<tr class="border-b border-slate-700/50"><td class="py-3 font-bold text-blue-400 text-xs w-20">REGU ${t.no}</td><td class="py-3 font-bold text-white text-sm">${t.nama}</td>${infoSkor}</tr>`; 
         });
         
         document.getElementById('modal-team-list').innerHTML = tHtml;
         
-        // Ubah teks tombol jika sesi sudah selesai
         const btnMulai = document.getElementById('btn-start-sesi');
         if (s.isSelesai) {
             btnMulai.innerText = "LIHAT SKOR";
@@ -158,15 +142,33 @@ const app = {
 
     async openSesi(encoded) {
         this.sesi = JSON.parse(decodeURIComponent(encoded));
+        
+        // PENGAMANAN BARU: Cek Local Storage (Memori Browser)
         const local = localStorage.getItem(`lcc_v4_${this.sesi.id}`);
+        let isCacheValid = false;
+
         if(local) {
             const d = JSON.parse(local);
-            this.scores = d.scores; this.historyText = d.historyText; this.isLocked = d.isLocked;
-        } else {
+            // Validasi: Pastikan jumlah regu di memori sama persis dengan jumlah regu di Excel saat ini
+            if(d.scores && d.scores.length === this.sesi.teams.length) {
+                this.scores = d.scores; 
+                this.historyText = d.historyText || [];
+                // BUKA KUNCI PAKSA jika di Excel statusnya belum Selesai
+                this.isLocked = this.sesi.isSelesai ? d.isLocked : false; 
+                isCacheValid = true;
+            }
+        }
+
+        // Jika memori tidak valid (jumlah regu beda) atau tidak ada memori, RESET KE NOL
+        if(!isCacheValid) {
             this.scores = new Array(this.sesi.teams.length).fill(0);
             this.historyText = [`Sesi ${this.sesi.nama} dibuka.`];
-            this.historyActions = []; this.isLocked = this.sesi.isSelesai;
+            this.historyActions = []; 
+            this.isLocked = this.sesi.isSelesai;
+            // Bersihkan sampah memori lama
+            localStorage.removeItem(`lcc_v4_${this.sesi.id}`); 
         }
+
         document.getElementById('view-dashboard').classList.add('hidden');
         document.getElementById('view-scoring').classList.remove('hidden');
         document.getElementById('sc-judul').innerText = this.sesi.nama;
@@ -192,7 +194,7 @@ const app = {
         
         let html = "";
         this.sesi.teams.forEach((t, i) => {
-            const regu = ['A','B','C','D','E','F'][i];
+            const regu = t.no;
             html += `
             <div class="glass p-6 rounded-[32px] flex flex-col justify-between shadow-2xl relative overflow-hidden border-t border-white/10 h-full">
                 <div class="text-center mb-6">
@@ -222,18 +224,18 @@ const app = {
     updateScore(idx, val) {
         if(this.isLocked) return;
         this.historyActions.push({idx, val}); this.scores[idx] += val;
-        this.addHistory(`Regu ${['A','B','C','D','E','F'][idx]}: ${val > 0 ? '+' : ''}${val}`);
+        this.addHistory(`Regu ${this.sesi.teams[idx].no}: ${val > 0 ? '+' : ''}${val}`);
         this.renderGrid(); this.pushCloud();
     },
 
     setManualScore(idx) {
         if(this.isLocked) return;
         const current = this.scores[idx];
-        const input = prompt(`Skor Baru Regu ${['A','B','C','D','E','F'][idx]}:`, current);
+        const input = prompt(`Skor Baru Regu ${this.sesi.teams[idx].no}:`, current);
         if (input !== null && !isNaN(parseInt(input))) {
             const newScore = parseInt(input);
             this.historyActions.push({idx, val: newScore - current}); this.scores[idx] = newScore;
-            this.addHistory(`Regu ${['A','B','C','D','E','F'][idx]}: Diubah Manual ke ${newScore}`);
+            this.addHistory(`Regu ${this.sesi.teams[idx].no}: Diubah Manual ke ${newScore}`);
             this.renderGrid(); this.pushCloud();
         }
     },
@@ -241,7 +243,7 @@ const app = {
     undo() {
         if(this.historyActions.length === 0 || this.isLocked) return;
         const last = this.historyActions.pop(); this.scores[last.idx] -= last.val;
-        this.addHistory(`Undo Aksi Regu ${['A','B','C','D','E','F'][last.idx]}`);
+        this.addHistory(`Undo Aksi Regu ${this.sesi.teams[last.idx].no}`);
         this.renderGrid(); this.pushCloud();
     },
 
@@ -277,7 +279,13 @@ const app = {
     async pullCloud() {
         try {
             const res = await (await fetch(API_URL, { method:'POST', body: JSON.stringify({action:'getScore', id: this.sesi.id})})).json();
-            if(res.data) { this.scores = res.data.scores; this.historyText = res.data.historyText; this.isLocked = res.data.isLocked; this.renderGrid(); this.renderHistory(); }
+            // Validasi keamanan pull: pastikan jumlah array skor yang ditarik dari awan sama
+            if(res.data && res.data.scores && res.data.scores.length === this.sesi.teams.length) { 
+                this.scores = res.data.scores; 
+                this.historyText = res.data.historyText; 
+                this.isLocked = this.sesi.isSelesai ? res.data.isLocked : false; 
+                this.renderGrid(); this.renderHistory(); 
+            }
         } catch(e) {}
     },
 
