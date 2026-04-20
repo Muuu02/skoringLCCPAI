@@ -3,6 +3,16 @@
 const API_URL = "https://script.google.com/macros/s/AKfycbzMTcjr2-y7i_T6AccfIdfGjPYjB0I_7waWa6Xh_8pb8iGe4DozRlz9VZUdOL5D-6Akkg/exec";
 // ==========================================
 
+// ==========================================
+// PENGATURAN NAMA FILE SUARA (Pastikan letaknya se-folder)
+// ==========================================
+const audioTick = new Audio('tick.mp3');
+const audioBuzzer = new Audio('buzzer.mp3');
+// Preload agar suara tidak delay saat pertama kali dipanggil
+audioTick.load(); 
+audioBuzzer.load();
+// ==========================================
+
 const app = {
     role: '', user: '',
     allSessions: [],
@@ -245,7 +255,6 @@ const app = {
         this.renderGrid(); this.pushCloud();
     },
 
-    // --- FITUR BARU: RESET SKOR & HISTORY ---
     resetSesi() {
         if(this.isLocked) return alert("Sesi sudah terkunci, tidak bisa di-reset!");
         if(confirm("⚠️ YAKIN INGIN MERESET? Semua skor akan kembali jadi 0 dan riwayat akan dibersihkan. Aksi ini tidak bisa dikembalikan!")) {
@@ -258,34 +267,18 @@ const app = {
         }
     },
 
-    // --- UPDATE: SUARA DETIKAN ---
+    // --- FUNGSI MEMAINKAN MP3 ---
     playTick() {
         try {
-            const ctx = new (window.AudioContext || window.webkitAudioContext)();
-            const osc = ctx.createOscillator();
-            const gain = ctx.createGain();
-            osc.type = 'sine';
-            osc.frequency.setValueAtTime(1000, ctx.currentTime); // Suara "Ting" pendek
-            gain.gain.setValueAtTime(0.05, ctx.currentTime); // Volume sangat pelan agar tidak berisik
-            gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.05);
-            osc.connect(gain); gain.connect(ctx.destination);
-            osc.start(); osc.stop(ctx.currentTime + 0.05);
+            audioTick.currentTime = 0; // Reset ke detik 0 agar tidak delay
+            audioTick.play().catch(e => console.log("Menunggu interaksi pengguna untuk memutar suara."));
         } catch(e) {}
     },
 
-    // --- UPDATE: SUARA SIRINE PANJANG ---
     playBuzzer() {
         try {
-            const ctx = new (window.AudioContext || window.webkitAudioContext)();
-            const osc = ctx.createOscillator();
-            const gain = ctx.createGain();
-            osc.type = 'sawtooth'; // Tipe suara lebih kasar (mirip sirine/buzzer)
-            osc.frequency.setValueAtTime(600, ctx.currentTime); 
-            osc.frequency.exponentialRampToValueAtTime(200, ctx.currentTime + 1.5); // Nada turun perlahan
-            gain.gain.setValueAtTime(0.2, ctx.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 1.5); // Volume memudar
-            osc.connect(gain); gain.connect(ctx.destination);
-            osc.start(); osc.stop(ctx.currentTime + 1.5); // Durasi dipanjangkan ke 1.5 detik
+            audioBuzzer.currentTime = 0; // Reset ke detik 0
+            audioBuzzer.play().catch(e => console.log("Menunggu interaksi pengguna untuk memutar suara."));
         } catch(e) {}
     },
 
@@ -300,18 +293,21 @@ const app = {
     startTimer() {
         if(this.timerValue <= 0) return;
         this.stopTimer();
+        
+        // Memainkan bunyi tick pertama secara instan saat tombol diklik
+        this.playTick();
+
         this.timerInterval = setInterval(() => {
             this.timerValue--; 
             this.updateTimerDisplay();
             
-            // Panggil detikan jika waktu belum habis
             if(this.timerValue > 0) {
                 this.playTick(); 
             }
 
             if(this.timerValue <= 0) { 
                 this.stopTimer(); 
-                this.playBuzzer(); // Mainkan sirine
+                this.playBuzzer(); // Mainkan buzzer.mp3
                 setTimeout(() => alert('WAKTU HABIS!'), 500); 
             }
         }, 1000);
@@ -325,7 +321,6 @@ const app = {
         this.renderHistory();
     },
     
-    // UPDATE: Desain history disesuaikan agar cocok horizontal jika dipindah ke bawah
     renderHistory() { 
         const historyContainer = document.getElementById('history-log');
         historyContainer.innerHTML = this.historyText.map(t => `<div class="bg-slate-800/40 p-3 rounded-xl border border-white/5 text-[10px] font-bold text-slate-300 shadow-sm leading-tight inline-block whitespace-nowrap">${t}</div>`).join(''); 
