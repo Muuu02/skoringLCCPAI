@@ -3,114 +3,111 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LCC Digital Dashboard - Pro Version</title>
+    <title>LCC Digital - Professional Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;700;800&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Plus Jakarta Sans', sans-serif; background: #0f172a; color: white; min-height: 100vh; overflow-x: hidden; }
-        .glass { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.1); }
-        .btn-grad { transition: 0.3s; background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); }
-        .btn-grad:hover { transform: translateY(-2px); box-shadow: 0 10px 20px -10px #3b82f6; }
-        #team-grid { scrollbar-width: thin; scrollbar-color: #334155 transparent; }
+        .glass { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.05); }
+        .btn-grad { transition: 0.3s; background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%); }
+        .btn-grad:hover { transform: translateY(-2px); box-shadow: 0 10px 20px -10px #2563eb; }
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
     </style>
 </head>
-<body>
+<body class="selection:bg-blue-500 selection:text-white">
 
     <section id="view-login" class="flex items-center justify-center min-h-screen p-6">
-        <div class="glass p-10 rounded-[40px] w-full max-w-md text-center border-t border-white/20 shadow-2xl">
-            <div class="w-20 h-20 bg-blue-600 rounded-3xl mx-auto mb-6 flex items-center justify-center shadow-lg shadow-blue-500/50">
-                <span class="text-4xl">🏆</span>
+        <div class="glass p-10 rounded-[32px] w-full max-w-sm text-center shadow-2xl">
+            <div class="w-16 h-16 bg-blue-600 rounded-2xl mx-auto mb-6 flex items-center justify-center shadow-lg shadow-blue-500/30">
+                <span class="text-3xl">🎯</span>
             </div>
-            <h1 class="text-3xl font-extrabold mb-2 tracking-tight">LCC <span class="text-blue-500">DIGITAL</span></h1>
-            <p class="text-slate-400 mb-8 text-sm">Silakan masuk untuk mengelola skor</p>
-            <input type="text" id="user" placeholder="Username" class="w-full bg-slate-800/50 border border-slate-700 p-4 rounded-t-2xl focus:outline-none text-center font-bold text-white focus:ring-2 focus:ring-blue-500 transition">
-            <input type="password" id="pass" placeholder="Password" class="w-full bg-slate-800 border border-slate-700 border-t-0 p-4 rounded-b-2xl mb-6 focus:ring-2 focus:ring-blue-500 outline-none text-center font-bold">
-            <button id="btn-login" onclick="app.login()" class="w-full btn-grad py-4 rounded-2xl font-bold tracking-wide uppercase text-sm mb-3">Masuk Sistem</button>
-            <button onclick="app.role='VIEWER'; app.showDashboard()" class="w-full text-slate-500 text-xs font-bold hover:text-slate-300 transition">MASUK SEBAGAI VIEWER (DISPLAY)</button>
+            <h1 class="text-2xl font-black mb-1 tracking-tight">LCC <span class="text-blue-500">DIGITAL</span></h1>
+            <p class="text-slate-400 mb-8 text-xs font-semibold uppercase tracking-widest">Sistem Manajemen Turnamen</p>
+            
+            <input type="text" id="user" placeholder="Username" class="w-full bg-slate-800/80 border border-slate-700 p-4 rounded-xl mb-3 focus:outline-none text-center font-bold text-white focus:ring-2 focus:ring-blue-500 transition">
+            <input type="password" id="pass" placeholder="Password" class="w-full bg-slate-800/80 border border-slate-700 p-4 rounded-xl mb-6 focus:outline-none text-center font-bold text-white focus:ring-2 focus:ring-blue-500 transition">
+            
+            <button id="btn-login" onclick="app.login()" class="w-full btn-grad py-4 rounded-xl font-bold tracking-wide uppercase text-sm mb-4 shadow-lg shadow-blue-500/20">Masuk Sistem</button>
+            <button onclick="app.role='VIEWER'; app.showDashboard()" class="w-full text-slate-500 text-[10px] font-bold hover:text-white transition uppercase tracking-widest">Akses Mode Display (Viewer)</button>
         </div>
     </section>
 
-    <section id="view-dashboard" class="hidden p-6 md:p-12 max-w-7xl mx-auto w-full">
-        <header class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4 border-b border-slate-700 pb-6">
-            <div>
-                <h2 class="text-4xl font-black text-white uppercase italic">Dashboard <span class="text-blue-500 tracking-tighter">LCC</span></h2>
-                <p class="text-slate-400 text-sm">Kelola sesi dan pantau skor secara real-time</p>
+    <section id="view-dashboard" class="hidden p-6 md:p-8 max-w-7xl mx-auto w-full">
+        <header class="flex flex-col md:flex-row justify-between items-center mb-8 gap-4 bg-slate-800/40 p-6 rounded-3xl border border-white/5">
+            <div class="text-center md:text-left">
+                <h2 class="text-3xl font-black text-white tracking-tight">Dashboard <span class="text-blue-500">Sesi</span></h2>
+                <p class="text-slate-400 text-xs font-semibold mt-1">Data sinkron otomatis dengan Google Sheets</p>
             </div>
             <div class="flex items-center gap-3">
-                <button onclick="app.loadSessions()" class="bg-slate-800 hover:bg-slate-700 p-3 rounded-xl transition text-blue-400" title="Refresh Data">🔄</button>
-                <div class="glass px-6 py-2 rounded-xl border-blue-500/30 text-right">
-                    <p id="info-user" class="text-sm font-bold text-blue-400 leading-none mb-1"></p>
-                    <p id="info-role" class="text-[9px] text-slate-500 uppercase tracking-widest"></p>
+                <button onclick="app.loadSessions()" class="bg-slate-700 hover:bg-slate-600 px-4 py-3 rounded-xl transition text-white font-bold text-xs flex gap-2 items-center"><span class="text-blue-400">🔄</span> Refresh</button>
+                <div class="bg-slate-900/50 px-6 py-2 rounded-xl border border-slate-700 text-right">
+                    <p id="info-user" class="text-sm font-bold text-white leading-none mb-1"></p>
+                    <p id="info-role" class="text-[9px] text-blue-400 uppercase tracking-widest font-bold"></p>
                 </div>
-                <button onclick="app.logout()" class="bg-red-900/30 hover:bg-red-600 text-red-500 hover:text-white px-4 py-2 rounded-xl text-xs font-bold transition">LOGOUT</button>
+                <button onclick="app.logout()" class="bg-red-500/10 hover:bg-red-600 text-red-500 hover:text-white px-4 py-3 rounded-xl text-xs font-bold transition">LOGOUT</button>
             </div>
         </header>
 
-        <div id="admin-panel" class="hidden mb-8 bg-blue-600/10 border border-blue-500/20 p-4 rounded-3xl flex justify-between items-center">
-            <p class="text-xs text-blue-300"><b>Pro Tip:</b> Jika sesi selesai, Anda bisa menambah sesi baru langsung di Google Sheets.</p>
-            <a href="https://docs.google.com/spreadsheets/d/1FJk7j0qT-DvA7Gv6HZGJ-Tz1TuYYhr_3QHNYz3v1E-c/edit" target="_blank" class="bg-blue-600 hover:bg-blue-500 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition shadow-lg shadow-blue-500/20">+ Tambah Sesi di Excel</a>
-        </div>
-
         <div id="babak-tabs" class="flex gap-2 mb-6 border-b border-slate-700 pb-2 overflow-x-auto"></div>
-        <div id="session-list" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+        
+        <div id="session-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5"></div>
     </section>
 
-    <section id="view-scoring" class="hidden h-screen flex flex-col">
-        <nav class="p-4 glass flex justify-between items-center px-8">
+    <section id="view-scoring" class="hidden h-screen flex flex-col bg-slate-900">
+        <nav class="p-4 glass flex justify-between items-center px-6 z-10 border-b border-white/5">
             <div class="flex items-center gap-4">
-                <button onclick="app.backToDashboard()" class="text-slate-400 hover:text-white font-bold">← Dashboard</button>
-                <div class="h-8 w-[1px] bg-slate-700"></div>
+                <button onclick="app.backToDashboard()" class="text-slate-400 hover:text-white font-bold text-sm bg-slate-800 px-4 py-2 rounded-lg transition">← Dashboard</button>
+                <div class="h-6 w-[1px] bg-slate-700"></div>
                 <div>
-                    <h4 id="sc-judul" class="font-black text-lg leading-none">Sesi Lomba</h4>
+                    <h4 id="sc-judul" class="font-black text-white text-lg leading-none">Sesi Lomba</h4>
                     <span id="sc-babak" class="text-[10px] text-blue-400 font-bold uppercase tracking-widest">Babak</span>
                 </div>
             </div>
             
-            <div id="timer-display" class="bg-black/40 px-6 py-2 rounded-2xl border border-white/10 flex items-center gap-4">
-                <span id="time" class="text-4xl font-mono font-black text-red-500 tracking-tighter w-12 text-center">00</span>
-                <div id="timer-controls" class="flex flex-col gap-1">
-                    <div class="flex gap-1">
-                        <button onclick="app.setTimer(15)" class="bg-slate-700 hover:bg-slate-600 px-2 py-1 rounded-md text-[10px] font-bold">15s</button>
-                        <button onclick="app.setTimer(30)" class="bg-slate-700 hover:bg-slate-600 px-2 py-1 rounded-md text-[10px] font-bold">30s</button>
-                        <input type="number" id="custom-time" placeholder="Sec" class="w-12 bg-slate-800 text-center text-[10px] rounded-md border border-slate-600 outline-none text-white">
-                        <button onclick="app.setTimer(document.getElementById('custom-time').value)" class="bg-blue-600 hover:bg-blue-500 px-2 py-1 rounded-md text-[10px] font-bold">SET</button>
+            <div id="timer-display" class="bg-black/60 px-6 py-2 rounded-2xl border border-white/10 flex items-center gap-6 shadow-inner">
+                <span id="time" class="text-5xl font-mono font-black text-blue-500 tracking-tighter w-16 text-center transition-colors">00</span>
+                <div id="timer-controls" class="flex flex-col gap-1.5">
+                    <div class="flex gap-1.5">
+                        <button onclick="app.setTimer(15)" class="bg-slate-700 hover:bg-slate-600 px-3 py-1 rounded text-[10px] font-bold transition">15s</button>
+                        <button onclick="app.setTimer(30)" class="bg-slate-700 hover:bg-slate-600 px-3 py-1 rounded text-[10px] font-bold transition">30s</button>
+                        <input type="number" id="custom-time" placeholder="Sec" class="w-12 bg-slate-900 text-center text-[10px] rounded border border-slate-600 outline-none focus:border-blue-500 transition">
+                        <button onclick="app.setTimer(document.getElementById('custom-time').value)" class="bg-blue-600 hover:bg-blue-500 px-3 py-1 rounded text-[10px] font-bold transition">SET</button>
                     </div>
-                    <div class="flex gap-1">
-                        <button id="btn-timer-start" onclick="app.startTimer()" class="flex-1 bg-green-600 hover:bg-green-500 py-1 rounded-md text-[10px] font-bold">START</button>
-                        <button onclick="app.stopTimer()" class="flex-1 bg-red-600 hover:bg-red-500 py-1 rounded-md text-[10px] font-bold">STOP</button>
+                    <div class="flex gap-1.5">
+                        <button onclick="app.startTimer()" class="flex-1 bg-green-600 hover:bg-green-500 py-1 rounded text-[10px] font-bold transition shadow-lg shadow-green-500/20">START</button>
+                        <button onclick="app.stopTimer()" class="flex-1 bg-red-600 hover:bg-red-500 py-1 rounded text-[10px] font-bold transition">STOP</button>
                     </div>
                 </div>
             </div>
 
             <div id="admin-controls" class="flex gap-3">
-                <button onclick="app.undo()" class="bg-slate-800 hover:bg-slate-700 px-4 py-2 rounded-xl text-xs font-bold transition">UNDO</button>
-                <button onclick="app.lockSesi()" class="bg-red-600 hover:bg-red-500 px-4 py-2 rounded-xl text-xs font-bold transition shadow-lg shadow-red-500/20">AKHIRI SESI</button>
+                <button onclick="app.undo()" class="bg-slate-800 hover:bg-slate-700 px-5 py-2.5 rounded-xl text-xs font-bold transition border border-white/5">UNDO</button>
+                <button onclick="app.lockSesi()" class="bg-red-600 hover:bg-red-500 px-5 py-2.5 rounded-xl text-xs font-bold transition shadow-lg shadow-red-500/30 flex items-center gap-2">🔒 AKHIRI SESI</button>
             </div>
         </nav>
+        
         <main class="flex-1 flex overflow-hidden">
-            <div id="team-grid" class="flex-1 p-6 grid gap-4 overflow-y-auto content-start"></div>
-            <aside class="w-80 glass border-l border-white/10 p-6 hidden lg:flex flex-col">
-                <h5 class="text-xs font-black text-slate-500 uppercase mb-4 tracking-widest">Log Aktivitas</h5>
-                <div id="history-log" class="flex-1 space-y-3 overflow-y-auto text-[11px]"></div>
+            <div id="team-grid" class="flex-1 p-6 grid gap-6 overflow-y-auto content-start justify-center"></div>
+            <aside class="w-72 bg-slate-900 border-l border-white/5 p-6 hidden lg:flex flex-col">
+                <h5 class="text-[10px] font-black text-slate-500 uppercase mb-4 tracking-widest">History Activity</h5>
+                <div id="history-log" class="flex-1 space-y-2 overflow-y-auto pr-2"></div>
             </aside>
         </main>
     </section>
 
-    <div id="modal-verify" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-        <div class="glass p-8 rounded-[32px] w-full max-w-lg border border-slate-600 shadow-2xl">
+    <div id="modal-verify" class="hidden fixed inset-0 z-50 bg-slate-900/90 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="glass p-8 rounded-[32px] w-full max-w-md border border-slate-700 shadow-2xl transform transition-all">
             <h3 id="modal-title" class="text-2xl font-black text-white mb-1">Nama Sesi</h3>
-            <p id="modal-babak" class="text-sm font-bold text-blue-400 uppercase tracking-widest mb-6">Babak</p>
-            <div class="bg-slate-800/80 rounded-2xl p-4 mb-6 max-h-60 overflow-y-auto text-xs">
-                <table class="w-full text-left">
-                    <thead><tr class="text-slate-500 border-b border-slate-700"><th class="pb-2">Regu</th><th class="pb-2">Sekolah</th></tr></thead>
-                    <tbody id="modal-team-list" class="text-slate-300"></tbody>
+            <p id="modal-babak" class="text-xs font-bold text-blue-400 uppercase tracking-widest mb-6">Babak</p>
+            <div class="bg-slate-900/50 rounded-2xl p-4 mb-8">
+                <table class="w-full text-left text-sm">
+                    <tbody id="modal-team-list" class="divide-y divide-slate-800 text-slate-300"></tbody>
                 </table>
             </div>
-            <div class="flex gap-3">
-                <button onclick="document.getElementById('modal-verify').classList.add('hidden')" class="flex-1 bg-slate-700 hover:bg-slate-600 font-bold py-4 rounded-2xl">BATAL</button>
-                <button id="btn-start-sesi" class="flex-1 bg-green-600 hover:bg-green-500 font-bold py-4 rounded-2xl shadow-lg shadow-green-500/20">MULAI SESI</button>
+            <div class="flex gap-4">
+                <button onclick="document.getElementById('modal-verify').classList.add('hidden')" class="flex-1 bg-slate-800 hover:bg-slate-700 font-bold py-3.5 rounded-xl transition">Batal</button>
+                <button id="btn-start-sesi" class="flex-1 bg-blue-600 hover:bg-blue-500 font-bold py-3.5 rounded-xl shadow-lg shadow-blue-500/30 transition">Buka Sesi</button>
             </div>
         </div>
     </div>
