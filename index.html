@@ -88,13 +88,15 @@
 </div>
         </nav>
         
-        <main class="flex-1 flex overflow-hidden">
-            <div id="team-grid" class="flex-1 p-6 grid gap-6 overflow-y-auto content-start justify-center"></div>
-            <aside class="w-72 bg-slate-900 border-l border-white/5 p-6 hidden lg:flex flex-col">
-                <h5 class="text-[10px] font-black text-slate-500 uppercase mb-4 tracking-widest">History Activity</h5>
-                <div id="history-log" class="flex-1 space-y-2 overflow-y-auto pr-2"></div>
-            </aside>
-        </main>
+        <main class="flex-1 flex flex-col overflow-hidden">
+    <div id="team-grid" class="flex-1"></div>
+    <aside class="w-full bg-slate-900 border-t border-white/5 p-4 shrink-0 flex flex-col z-10">
+        <h5 class="text-[10px] font-black text-slate-500 uppercase mb-3 tracking-widest">History Activity</h5>
+        <div id="history-log" class="flex gap-3 overflow-x-auto pb-2" style="-ms-overflow-style: none; scrollbar-width: none;">
+            <style>#history-log::-webkit-scrollbar { display: none; }</style>
+        </div>
+    </aside>
+</main>
     </section>
 
     <div id="modal-verify" class="hidden fixed inset-0 z-50 bg-slate-900/90 backdrop-blur-sm flex items-center justify-center p-4">
