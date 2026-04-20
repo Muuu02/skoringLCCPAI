@@ -292,28 +292,35 @@ const app = {
     
     startTimer() {
         if(this.timerValue <= 0) return;
-        this.stopTimer();
+        this.stopTimer(); // Pastikan timer dan suara bersih sebelum mulai
         
-        // Memainkan bunyi tick pertama secara instan saat tombol diklik
-        this.playTick();
+        // Memainkan MP3 berdurasi panjang SEKALI saja di awal
+        try {
+            audioTick.currentTime = 0; 
+            audioTick.play().catch(e => console.log("Menunggu interaksi pengguna"));
+        } catch(e) {}
 
         this.timerInterval = setInterval(() => {
             this.timerValue--; 
             this.updateTimerDisplay();
-            
-            if(this.timerValue > 0) {
-                this.playTick(); 
-            }
 
             if(this.timerValue <= 0) { 
-                this.stopTimer(); 
-                this.playBuzzer(); // Mainkan buzzer.mp3
+                this.stopTimer();  // stopTimer sekarang juga mematikan audioTick otomatis
+                this.playBuzzer(); // Mainkan sirine.mp3
                 setTimeout(() => alert('WAKTU HABIS!'), 500); 
             }
         }, 1000);
     },
     
-    stopTimer() { clearInterval(this.timerInterval); },
+    stopTimer() { 
+        clearInterval(this.timerInterval); 
+        
+        // Hentikan paksa suara MP3 (auto henti)
+        try {
+            audioTick.pause();        // Hentikan lagu
+            audioTick.currentTime = 0; // Kembalikan ke detik 0
+        } catch(e) {}
+    },
 
     addHistory(txt) {
         const now = new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
