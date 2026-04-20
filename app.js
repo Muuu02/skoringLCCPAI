@@ -182,14 +182,10 @@ const app = {
         if (this.role === 'VIEWER') setInterval(() => this.pullCloud(), 3000);
     },
 
-    // --- UPDATE 1: RENDER GRID AUTO CENTER, COMPACT & INVISIBLE SCROLL ---
     renderGrid() {
         const grid = document.getElementById('team-grid');
-        
-        // Gunakan flex-wrap agar otomatis center, dan aktifkan overflow-y-auto
         grid.className = "flex-1 p-4 flex flex-wrap justify-center content-start items-stretch gap-5 overflow-y-auto w-full max-w-7xl mx-auto";
         
-        // CSS Webkit untuk menyembunyikan Scrollbar tapi fitur Scroll tetap berfungsi
         let html = `<style>
             #team-grid::-webkit-scrollbar { display: none; } 
             #team-grid { -ms-overflow-style: none; scrollbar-width: none; }
@@ -197,7 +193,6 @@ const app = {
         
         this.sesi.teams.forEach((t, i) => {
             const regu = t.no;
-            // Kotak dibatasi minimal 310px tingginya (min-h) agar tombol tidak ketumpuk
             html += `
             <div class="glass p-5 rounded-[28px] flex flex-col justify-between shadow-2xl relative overflow-hidden border-t border-white/10 w-full sm:w-[260px] lg:w-[280px] shrink-0 min-h-[310px]">
                 <div class="text-center mb-4">
@@ -250,20 +245,48 @@ const app = {
         this.renderGrid(); this.pushCloud();
     },
 
-    // --- UPDATE 2: TIMER DENGAN AUDIO BUZZER ---
-    playBuzzer() {
+    // --- FITUR BARU: RESET SKOR & HISTORY ---
+    resetSesi() {
+        if(this.isLocked) return alert("Sesi sudah terkunci, tidak bisa di-reset!");
+        if(confirm("⚠️ YAKIN INGIN MERESET? Semua skor akan kembali jadi 0 dan riwayat akan dibersihkan. Aksi ini tidak bisa dikembalikan!")) {
+            this.scores = new Array(this.sesi.teams.length).fill(0);
+            this.historyText = [`Sesi ${this.sesi.nama} di-reset ke 0.`];
+            this.historyActions = [];
+            this.renderGrid(); 
+            this.renderHistory();
+            this.pushCloud();
+        }
+    },
+
+    // --- UPDATE: SUARA DETIKAN ---
+    playTick() {
         try {
-            // Membangkitkan suara via Web Audio API bawaan Browser (Tanpa aset luar)
             const ctx = new (window.AudioContext || window.webkitAudioContext)();
             const osc = ctx.createOscillator();
             const gain = ctx.createGain();
-            osc.type = 'square';
-            osc.frequency.setValueAtTime(500, ctx.currentTime); // Nada tinggi
-            osc.frequency.setValueAtTime(300, ctx.currentTime + 0.1); // Jatuh sedikit (khas bel game)
-            gain.gain.setValueAtTime(0.1, ctx.currentTime); // Volume sedang
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(1000, ctx.currentTime); // Suara "Ting" pendek
+            gain.gain.setValueAtTime(0.05, ctx.currentTime); // Volume sangat pelan agar tidak berisik
+            gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.05);
             osc.connect(gain); gain.connect(ctx.destination);
-            osc.start(); osc.stop(ctx.currentTime + 0.8); // Durasi 0.8 detik
-        } catch(e) { console.log("Audio tidak didukung"); }
+            osc.start(); osc.stop(ctx.currentTime + 0.05);
+        } catch(e) {}
+    },
+
+    // --- UPDATE: SUARA SIRINE PANJANG ---
+    playBuzzer() {
+        try {
+            const ctx = new (window.AudioContext || window.webkitAudioContext)();
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.type = 'sawtooth'; // Tipe suara lebih kasar (mirip sirine/buzzer)
+            osc.frequency.setValueAtTime(600, ctx.currentTime); 
+            osc.frequency.exponentialRampToValueAtTime(200, ctx.currentTime + 1.5); // Nada turun perlahan
+            gain.gain.setValueAtTime(0.2, ctx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 1.5); // Volume memudar
+            osc.connect(gain); gain.connect(ctx.destination);
+            osc.start(); osc.stop(ctx.currentTime + 1.5); // Durasi dipanjangkan ke 1.5 detik
+        } catch(e) {}
     },
 
     setTimer(sec) { this.stopTimer(); this.timerValue = parseInt(sec) || 0; this.updateTimerDisplay(); },
@@ -278,12 +301,18 @@ const app = {
         if(this.timerValue <= 0) return;
         this.stopTimer();
         this.timerInterval = setInterval(() => {
-            this.timerValue--; this.updateTimerDisplay();
+            this.timerValue--; 
+            this.updateTimerDisplay();
+            
+            // Panggil detikan jika waktu belum habis
+            if(this.timerValue > 0) {
+                this.playTick(); 
+            }
+
             if(this.timerValue <= 0) { 
                 this.stopTimer(); 
-                this.playBuzzer(); // Mainkan suara bel
-                // Delay alert sedikit agar suara bel bisa keluar duluan
-                setTimeout(() => alert('WAKTU HABIS!'), 200); 
+                this.playBuzzer(); // Mainkan sirine
+                setTimeout(() => alert('WAKTU HABIS!'), 500); 
             }
         }, 1000);
     },
@@ -295,7 +324,12 @@ const app = {
         this.historyText.unshift(`<span class="text-blue-400 font-mono">[${now}]</span> ${txt}`);
         this.renderHistory();
     },
-    renderHistory() { document.getElementById('history-log').innerHTML = this.historyText.map(t => `<div class="bg-slate-800/40 p-3 rounded-xl border border-white/5 text-[10px] font-bold text-slate-300 shadow-sm leading-tight">${t}</div>`).join(''); },
+    
+    // UPDATE: Desain history disesuaikan agar cocok horizontal jika dipindah ke bawah
+    renderHistory() { 
+        const historyContainer = document.getElementById('history-log');
+        historyContainer.innerHTML = this.historyText.map(t => `<div class="bg-slate-800/40 p-3 rounded-xl border border-white/5 text-[10px] font-bold text-slate-300 shadow-sm leading-tight inline-block whitespace-nowrap">${t}</div>`).join(''); 
+    },
 
     async pushCloud() {
         const data = { scores: this.scores, historyText: this.historyText, isLocked: this.isLocked };
