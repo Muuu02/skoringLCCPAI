@@ -1,6 +1,6 @@
 // ==========================================
 // GANTI DENGAN URL DEPLOY APPS SCRIPT ANDA
-const API_URL = "ISI_DENGAN_URL_WEB_APP_ANDA";
+const API_URL = "https://script.google.com/macros/s/AKfycbzMTcjr2-y7i_T6AccfIdfGjPYjB0I_7waWa6Xh_8pb8iGe4DozRlz9VZUdOL5D-6Akkg/exec";
 // ==========================================
 
 // ==========================================
