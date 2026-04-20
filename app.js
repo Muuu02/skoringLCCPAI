@@ -114,12 +114,45 @@ const app = {
         const s = JSON.parse(decodeURIComponent(encoded));
         document.getElementById('modal-title').innerText = s.nama;
         document.getElementById('modal-babak').innerText = s.babak;
+        
         let tHtml = "";
-        s.teams.forEach((t, i) => { 
-            tHtml += `<tr><td class="py-3 font-bold text-blue-400 text-xs w-20">REGU ${['A','B','C','D','E','F'][i]}</td><td class="py-3 font-bold text-white text-sm">${t.nama}</td></tr>`; 
+        s.teams.forEach((t) => { 
+            let infoSkor = "";
+            
+            // JIKA SESI SUDAH SELESAI, TAMPILKAN SKOR DAN STATUS JUARA DI PINGGIR
+            if (s.isSelesai && t.skor !== undefined) {
+                // Beri warna kuning khusus untuk Juara 1
+                let warnaJuara = t.peringkat === 1 ? "text-yellow-400" : "text-slate-400";
+                infoSkor = `
+                <td class="py-2 text-right">
+                    <span class="text-xl font-black text-white block">${t.skor}</span>
+                    <span class="text-[10px] font-bold ${warnaJuara} uppercase tracking-widest block">Juara ${t.peringkat}</span>
+                </td>`;
+            } else {
+                infoSkor = `<td class="py-2 text-right"></td>`; // Kosong jika belum mulai
+            }
+
+            tHtml += `
+            <tr class="border-b border-slate-700/50">
+                <td class="py-3 font-bold text-blue-400 text-xs w-20">REGU ${t.no}</td>
+                <td class="py-3 font-bold text-white text-sm">${t.nama}</td>
+                ${infoSkor}
+            </tr>`; 
         });
+        
         document.getElementById('modal-team-list').innerHTML = tHtml;
-        document.getElementById('btn-start-sesi').onclick = () => { document.getElementById('modal-verify').classList.add('hidden'); app.openSesi(encoded); };
+        
+        // Ubah teks tombol jika sesi sudah selesai
+        const btnMulai = document.getElementById('btn-start-sesi');
+        if (s.isSelesai) {
+            btnMulai.innerText = "LIHAT SKOR";
+            btnMulai.className = "flex-1 bg-slate-700 hover:bg-slate-600 font-bold py-3.5 rounded-xl transition text-slate-300";
+        } else {
+            btnMulai.innerText = "BUKA SESI";
+            btnMulai.className = "flex-1 bg-blue-600 hover:bg-blue-500 font-bold py-3.5 rounded-xl shadow-lg shadow-blue-500/30 transition text-white";
+        }
+
+        btnMulai.onclick = () => { document.getElementById('modal-verify').classList.add('hidden'); app.openSesi(encoded); };
         document.getElementById('modal-verify').classList.remove('hidden');
     },
 
