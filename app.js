@@ -1,6 +1,6 @@
 // ==========================================
 // GANTI DENGAN URL DEPLOY APPS SCRIPT ANDA
-const API_URL = "https://script.google.com/macros/s/AKfycbzMTcjr2-y7i_T6AccfIdfGjPYjB0I_7waWa6Xh_8pb8iGe4DozRlz9VZUdOL5D-6Akkg/exec";
+const API_URL = "ISI_DENGAN_URL_WEB_APP_ANDA";
 // ==========================================
 
 // ==========================================
@@ -8,7 +8,6 @@ const API_URL = "https://script.google.com/macros/s/AKfycbzMTcjr2-y7i_T6AccfIdfG
 // ==========================================
 const audioTick = new Audio('tick.mp3');
 const audioBuzzer = new Audio('buzzer.mp3');
-// Preload agar suara tidak delay saat pertama kali dipanggil
 audioTick.load(); 
 audioBuzzer.load();
 // ==========================================
@@ -20,6 +19,9 @@ const app = {
     sesi: null, scores: [], historyText: [], historyActions: [],
     isLocked: false,
     timerValue: 0, timerInterval: null,
+    
+    syncInterval: null,  // Tambahan untuk kontrol siklus refresh
+    lastPushTime: 0,     // Tambahan fitur ANTI-GHOSTING
 
     async login() {
         const u = document.getElementById('user').value;
@@ -188,8 +190,13 @@ const app = {
         }
 
         this.renderGrid(); this.renderHistory();
+        
+        // Panggil data awal dari cloud
         await this.pullCloud();
-        if (this.role === 'VIEWER') setInterval(() => this.pullCloud(), 3000);
+
+        // Mulai interval tarik data berkala
+        if(this.syncInterval) clearInterval(this.syncInterval);
+        this.syncInterval = setInterval(() => this.pullCloud(), 3000);
     },
 
     renderGrid() {
@@ -267,18 +274,17 @@ const app = {
         }
     },
 
-    // --- FUNGSI MEMAINKAN MP3 ---
     playTick() {
         try {
-            audioTick.currentTime = 0; // Reset ke detik 0 agar tidak delay
-            audioTick.play().catch(e => console.log("Menunggu interaksi pengguna untuk memutar suara."));
+            audioTick.currentTime = 0; 
+            audioTick.play().catch(e => console.log("Menunggu interaksi pengguna"));
         } catch(e) {}
     },
 
     playBuzzer() {
         try {
-            audioBuzzer.currentTime = 0; // Reset ke detik 0
-            audioBuzzer.play().catch(e => console.log("Menunggu interaksi pengguna untuk memutar suara."));
+            audioBuzzer.currentTime = 0; 
+            audioBuzzer.play().catch(e => console.log("Menunggu interaksi pengguna"));
         } catch(e) {}
     },
 
@@ -292,21 +298,21 @@ const app = {
     
     startTimer() {
         if(this.timerValue <= 0) return;
-        this.stopTimer(); // Pastikan timer dan suara bersih sebelum mulai
+        this.stopTimer();
         
-        // Memainkan MP3 berdurasi panjang SEKALI saja di awal
-        try {
-            audioTick.currentTime = 0; 
-            audioTick.play().catch(e => console.log("Menunggu interaksi pengguna"));
-        } catch(e) {}
+        this.playTick();
 
         this.timerInterval = setInterval(() => {
             this.timerValue--; 
             this.updateTimerDisplay();
+            
+            if(this.timerValue > 0) {
+                this.playTick(); 
+            }
 
             if(this.timerValue <= 0) { 
-                this.stopTimer();  // stopTimer sekarang juga mematikan audioTick otomatis
-                this.playBuzzer(); // Mainkan sirine.mp3
+                this.stopTimer(); 
+                this.playBuzzer(); 
                 setTimeout(() => alert('WAKTU HABIS!'), 500); 
             }
         }, 1000);
@@ -314,11 +320,9 @@ const app = {
     
     stopTimer() { 
         clearInterval(this.timerInterval); 
-        
-        // Hentikan paksa suara MP3 (auto henti)
         try {
-            audioTick.pause();        // Hentikan lagu
-            audioTick.currentTime = 0; // Kembalikan ke detik 0
+            audioTick.pause();       
+            audioTick.currentTime = 0; 
         } catch(e) {}
     },
 
@@ -333,15 +337,27 @@ const app = {
         historyContainer.innerHTML = this.historyText.map(t => `<div class="bg-slate-800/40 p-3 rounded-xl border border-white/5 text-[10px] font-bold text-slate-300 shadow-sm leading-tight inline-block whitespace-nowrap">${t}</div>`).join(''); 
     },
 
+    // --- LOGIKA ANTI-GHOSTING ADA DI SINI ---
     async pushCloud() {
+        this.lastPushTime = Date.now(); // Catat detiknya saat nge-klik skor
         const data = { scores: this.scores, historyText: this.historyText, isLocked: this.isLocked };
         localStorage.setItem(`lcc_v4_${this.sesi.id}`, JSON.stringify(data));
+        
+        // Kirim diam-diam tanpa nunggu balasan (Fire and forget)
         if(this.role !== 'VIEWER') fetch(API_URL, { method:'POST', body: JSON.stringify({action:'pushScore', id: this.sesi.id, ...data})});
     },
 
     async pullCloud() {
+        // JIKA PANITIA BARU SAJA NGE-KLIK SKOR (KURANG DARI 5 DETIK YANG LALU), JANGAN TARIK DATA (Blokir ghosting)
+        if (this.role !== 'VIEWER' && (Date.now() - this.lastPushTime < 5000)) return;
+
         try {
-            const res = await (await fetch(API_URL, { method:'POST', body: JSON.stringify({action:'getScore', id: this.sesi.id})})).json();
+            const req = await fetch(API_URL, { method:'POST', body: JSON.stringify({action:'getScore', id: this.sesi.id})});
+            const res = await req.json();
+            
+            // Cek lagi untuk menghindari tabrakan saat internet lambat
+            if (this.role !== 'VIEWER' && (Date.now() - this.lastPushTime < 5000)) return;
+
             if(res.data && res.data.scores && res.data.scores.length === this.sesi.teams.length) { 
                 this.scores = res.data.scores; 
                 this.historyText = res.data.historyText; 
@@ -364,6 +380,7 @@ const app = {
 
     backToDashboard() {
         this.stopTimer();
+        if(this.syncInterval) clearInterval(this.syncInterval); // Matikan auto-refresh saat kembali
         document.getElementById('view-scoring').classList.add('hidden');
         document.getElementById('view-dashboard').classList.remove('hidden');
         this.loadSessions(); 
