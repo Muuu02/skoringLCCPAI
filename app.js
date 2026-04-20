@@ -142,30 +142,24 @@ const app = {
 
     async openSesi(encoded) {
         this.sesi = JSON.parse(decodeURIComponent(encoded));
-        
-        // PENGAMANAN BARU: Cek Local Storage (Memori Browser)
         const local = localStorage.getItem(`lcc_v4_${this.sesi.id}`);
         let isCacheValid = false;
 
         if(local) {
             const d = JSON.parse(local);
-            // Validasi: Pastikan jumlah regu di memori sama persis dengan jumlah regu di Excel saat ini
             if(d.scores && d.scores.length === this.sesi.teams.length) {
                 this.scores = d.scores; 
                 this.historyText = d.historyText || [];
-                // BUKA KUNCI PAKSA jika di Excel statusnya belum Selesai
                 this.isLocked = this.sesi.isSelesai ? d.isLocked : false; 
                 isCacheValid = true;
             }
         }
 
-        // Jika memori tidak valid (jumlah regu beda) atau tidak ada memori, RESET KE NOL
         if(!isCacheValid) {
             this.scores = new Array(this.sesi.teams.length).fill(0);
             this.historyText = [`Sesi ${this.sesi.nama} dibuka.`];
             this.historyActions = []; 
             this.isLocked = this.sesi.isSelesai;
-            // Bersihkan sampah memori lama
             localStorage.removeItem(`lcc_v4_${this.sesi.id}`); 
         }
 
@@ -188,33 +182,42 @@ const app = {
         if (this.role === 'VIEWER') setInterval(() => this.pullCloud(), 3000);
     },
 
+    // --- UPDATE 1: RENDER GRID AUTO CENTER, COMPACT & INVISIBLE SCROLL ---
     renderGrid() {
         const grid = document.getElementById('team-grid');
-        grid.className = `flex-1 p-4 grid grid-cols-1 sm:grid-cols-2 ${this.sesi.teams.length > 3 ? 'lg:grid-cols-4' : 'lg:grid-cols-3'} gap-6 overflow-y-auto content-start items-center max-w-6xl mx-auto w-full`;
         
-        let html = "";
+        // Gunakan flex-wrap agar otomatis center, dan aktifkan overflow-y-auto
+        grid.className = "flex-1 p-4 flex flex-wrap justify-center content-start items-stretch gap-5 overflow-y-auto w-full max-w-7xl mx-auto";
+        
+        // CSS Webkit untuk menyembunyikan Scrollbar tapi fitur Scroll tetap berfungsi
+        let html = `<style>
+            #team-grid::-webkit-scrollbar { display: none; } 
+            #team-grid { -ms-overflow-style: none; scrollbar-width: none; }
+        </style>`;
+        
         this.sesi.teams.forEach((t, i) => {
             const regu = t.no;
+            // Kotak dibatasi minimal 310px tingginya (min-h) agar tombol tidak ketumpuk
             html += `
-            <div class="glass p-6 rounded-[32px] flex flex-col justify-between shadow-2xl relative overflow-hidden border-t border-white/10 h-full">
-                <div class="text-center mb-6">
+            <div class="glass p-5 rounded-[28px] flex flex-col justify-between shadow-2xl relative overflow-hidden border-t border-white/10 w-full sm:w-[260px] lg:w-[280px] shrink-0 min-h-[310px]">
+                <div class="text-center mb-4">
                     <span class="inline-block bg-slate-800 text-blue-400 font-bold text-[10px] px-3 py-1 rounded-full uppercase tracking-widest mb-3 border border-slate-700">REGU ${regu}</span>
                     <h4 class="text-sm font-black text-white leading-tight">${t.nama}</h4>
                 </div>
                 
-                <div class="my-6 text-center">
+                <div class="my-4 text-center">
                     <div class="text-7xl font-black text-white tracking-tighter drop-shadow-md">${this.scores[i]}</div>
                 </div>
 
                 ${this.role !== 'VIEWER' && !this.isLocked ? `
                 <div class="mt-auto">
                     <div class="grid grid-cols-2 gap-2 mb-2">
-                        <button onclick="app.updateScore(${i}, 100)" class="bg-[#16a34a] hover:bg-[#15803d] py-3 rounded-xl font-black text-sm text-white transition">+100</button>
-                        <button onclick="app.updateScore(${i}, 50)" class="bg-[#2563eb] hover:bg-[#1d4ed8] py-3 rounded-xl font-black text-sm text-white transition">+50</button>
-                        <button onclick="app.updateScore(${i}, -50)" class="bg-[#ea580c] hover:bg-[#c2410c] py-3 rounded-xl font-black text-sm text-white transition">-50</button>
-                        <button onclick="app.updateScore(${i}, -100)" class="bg-[#dc2626] hover:bg-[#b91c1c] py-3 rounded-xl font-black text-sm text-white transition">-100</button>
+                        <button onclick="app.updateScore(${i}, 100)" class="bg-[#16a34a] hover:bg-[#15803d] py-2.5 rounded-xl font-black text-sm text-white transition shadow-sm">+100</button>
+                        <button onclick="app.updateScore(${i}, 50)" class="bg-[#2563eb] hover:bg-[#1d4ed8] py-2.5 rounded-xl font-black text-sm text-white transition shadow-sm">+50</button>
+                        <button onclick="app.updateScore(${i}, -50)" class="bg-[#ea580c] hover:bg-[#c2410c] py-2.5 rounded-xl font-black text-sm text-white transition shadow-sm">-50</button>
+                        <button onclick="app.updateScore(${i}, -100)" class="bg-[#dc2626] hover:bg-[#b91c1c] py-2.5 rounded-xl font-black text-sm text-white transition shadow-sm">-100</button>
                     </div>
-                    <button onclick="app.setManualScore(${i})" class="w-full bg-slate-800 hover:bg-slate-700 py-3 rounded-xl font-bold text-[10px] uppercase tracking-widest text-white transition border border-slate-600">📝 Set Manual</button>
+                    <button onclick="app.setManualScore(${i})" class="w-full bg-slate-800 hover:bg-slate-700 py-2.5 rounded-xl font-bold text-[10px] uppercase tracking-widest text-white transition border border-slate-600">📝 Set Manual</button>
                 </div>` : ''}
             </div>`;
         });
@@ -247,20 +250,44 @@ const app = {
         this.renderGrid(); this.pushCloud();
     },
 
+    // --- UPDATE 2: TIMER DENGAN AUDIO BUZZER ---
+    playBuzzer() {
+        try {
+            // Membangkitkan suara via Web Audio API bawaan Browser (Tanpa aset luar)
+            const ctx = new (window.AudioContext || window.webkitAudioContext)();
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.type = 'square';
+            osc.frequency.setValueAtTime(500, ctx.currentTime); // Nada tinggi
+            osc.frequency.setValueAtTime(300, ctx.currentTime + 0.1); // Jatuh sedikit (khas bel game)
+            gain.gain.setValueAtTime(0.1, ctx.currentTime); // Volume sedang
+            osc.connect(gain); gain.connect(ctx.destination);
+            osc.start(); osc.stop(ctx.currentTime + 0.8); // Durasi 0.8 detik
+        } catch(e) { console.log("Audio tidak didukung"); }
+    },
+
     setTimer(sec) { this.stopTimer(); this.timerValue = parseInt(sec) || 0; this.updateTimerDisplay(); },
+    
     updateTimerDisplay() { 
         const display = document.getElementById('time');
         display.innerText = this.timerValue.toString().padStart(2, '0');
         display.className = `text-5xl font-mono font-black tracking-tighter w-16 text-center transition-colors ${this.timerValue <= 3 && this.timerValue > 0 ? 'text-red-500' : 'text-blue-500'}`;
     },
+    
     startTimer() {
         if(this.timerValue <= 0) return;
         this.stopTimer();
         this.timerInterval = setInterval(() => {
             this.timerValue--; this.updateTimerDisplay();
-            if(this.timerValue <= 0) { this.stopTimer(); alert('WAKTU HABIS!'); }
+            if(this.timerValue <= 0) { 
+                this.stopTimer(); 
+                this.playBuzzer(); // Mainkan suara bel
+                // Delay alert sedikit agar suara bel bisa keluar duluan
+                setTimeout(() => alert('WAKTU HABIS!'), 200); 
+            }
         }, 1000);
     },
+    
     stopTimer() { clearInterval(this.timerInterval); },
 
     addHistory(txt) {
@@ -279,7 +306,6 @@ const app = {
     async pullCloud() {
         try {
             const res = await (await fetch(API_URL, { method:'POST', body: JSON.stringify({action:'getScore', id: this.sesi.id})})).json();
-            // Validasi keamanan pull: pastikan jumlah array skor yang ditarik dari awan sama
             if(res.data && res.data.scores && res.data.scores.length === this.sesi.teams.length) { 
                 this.scores = res.data.scores; 
                 this.historyText = res.data.historyText; 
